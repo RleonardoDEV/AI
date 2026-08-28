@@ -1,0 +1,44 @@
+# Secretos y configuración local
+.env
+.env.*
+!.env.example
+*.pem
+*.pfx
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+dist/
+build/
+*.egg-info/
+
+# Node
+node_modules/
+.next/
+out/
+npm-debug.log*
+
+# Datos: nunca se versionan documentos ni extractos corporativos
+data/
+*.xlsx
+*.docx
+*.pdf
+!ml/data/synthetic/**
+
+# Modelos entrenados
+*.pkl
+*.joblib
+ml/models/
+
+# Sistema
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/*
+!.vscode/extensions.json
