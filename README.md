@@ -6,11 +6,19 @@
 > conversacional, calcula Project Health, predice riesgos de retraso, detecta Early Warnings
 > y proporciona recomendaciones accionables basadas en evidencia.
 
-**Estado actual: FASE 0 — Análisis y diseño. Todavía no hay código de aplicación.**
+**Estado actual: sprint 1 en curso.** La Fase 0 (análisis y diseño) está cerrada y las
+decisiones bloqueantes, tomadas — quedan registradas en
+[`docs/08`](docs/08-PREGUNTAS-ABIERTAS.md) §F.
 
-Este repositorio contiene, por ahora, el análisis técnico, la arquitectura propuesta, el
-modelo de seguridad y el plan de implementación. La escritura de código empieza cuando se
-cierren las decisiones abiertas de [`docs/08-PREGUNTAS-ABIERTAS.md`](docs/08-PREGUNTAS-ABIERTAS.md).
+Ya funciona, sin credenciales de Microsoft ni base de datos:
+
+```bash
+cd backend && python3 -m venv .venv && .venv/bin/pip install -e ".[dev]"
+.venv/bin/python -m app.cli demo     # ingesta → validación → Project Health con evidencias
+.venv/bin/python -m pytest -q        # 91 tests
+```
+
+Ver [`docs/SETUP.md`](docs/SETUP.md).
 
 ---
 
@@ -50,7 +58,8 @@ Tres reglas que no se negocian en ninguna fase:
 | [`docs/05-ML-Y-ANALYTICS.md`](docs/05-ML-Y-ANALYTICS.md) | Health, Early Warning, ML por fases, What-If, explicabilidad, KPIs |
 | [`docs/06-MVP-Y-ROADMAP.md`](docs/06-MVP-Y-ROADMAP.md) | Alcance del MVP y roadmap MVP / Future / Optional |
 | [`docs/07-INSTALACION-IT-Y-DEV.md`](docs/07-INSTALACION-IT-Y-DEV.md) | Qué necesita IT, qué necesito yo, paso a paso |
-| [`docs/08-PREGUNTAS-ABIERTAS.md`](docs/08-PREGUNTAS-ABIERTAS.md) | Decisiones bloqueantes y datos necesarios para empezar |
+| [`docs/08-PREGUNTAS-ABIERTAS.md`](docs/08-PREGUNTAS-ABIERTAS.md) | Decisiones bloqueantes, decisiones cerradas y contrato de datos canónico |
+| [`docs/SETUP.md`](docs/SETUP.md) | Cómo ejecutar lo que ya está construido |
 
 ## Nota sobre fuentes
 

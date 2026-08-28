@@ -1,0 +1,56 @@
+# Contrato de datos: Project Plan
+#
+# Para adaptar el sistema a un fichero real basta con añadir alias aquí.
+# NO hay que tocar código. Ver docs/08 §G.
+name: project_plan
+model: TaskRow
+sheet:
+  names: ["Tasks", "Task List", "Plan", "Project Plan", "Tareas", "Planificacion"]
+header:
+  detect: auto          # auto = busca la fila de cabecera; fixed = usa `row`
+  row: null
+  max_scan_rows: 30
+columns:
+  task_id:
+    aliases: ["Task ID", "ID", "Task Id", "Task#", "Id Tarea", "Codigo"]
+    type: text
+    required: true
+  task:
+    aliases: ["Task", "Task Name", "Activity", "Description", "Tarea", "Actividad"]
+    type: text
+    required: true
+  owner:
+    aliases: ["Owner", "Assigned To", "Responsible", "Resource", "Responsable"]
+    type: text
+  planned_start:
+    aliases: ["Planned Start", "Baseline Start", "Start", "Inicio Planificado"]
+    type: date
+  planned_end:
+    aliases: ["Planned End", "Planned Finish", "Baseline End", "Due Date", "Fin Planificado"]
+    type: date
+    required: true
+  actual_start:
+    aliases: ["Actual Start", "Real Start", "Inicio Real"]
+    type: date
+  actual_end:
+    aliases: ["Actual End", "Actual Finish", "Real End", "Fin Real", "Completed On"]
+    type: date
+  status:
+    aliases: ["Status", "State", "Estado", "Situacion"]
+    type: task_status
+    required: true
+  estimated_hours:
+    aliases: ["Estimated Hours", "Planned Hours", "Est. Hours", "Horas Estimadas"]
+    type: number
+  actual_hours:
+    aliases: ["Actual Hours", "Spent Hours", "Real Hours", "Horas Reales"]
+    type: number
+  milestone:
+    aliases: ["Milestone", "Is Milestone", "Hito"]
+    type: boolean
+  depends_on:
+    aliases: ["Depends On", "Dependencies", "Predecessors", "Depende De"]
+    type: id_list
+  critical:
+    aliases: ["Critical", "Critical Path", "Critica", "Ruta Critica"]
+    type: boolean

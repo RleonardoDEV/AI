@@ -1,0 +1,34 @@
+name: budget
+model: BudgetRow
+sheet:
+  names: ["Budget", "Costs", "Financials", "Presupuesto", "Costes"]
+header:
+  detect: auto
+  row: null
+  max_scan_rows: 30
+columns:
+  item:
+    aliases: ["Item", "Concept", "Line", "Description", "Concepto", "Partida"]
+    type: text
+    required: true
+  category:
+    aliases: ["Category", "Type", "Cost Type", "Categoria", "Tipo"]
+    type: text
+  planned_amount:
+    aliases: ["Planned Amount", "Budget", "Planned", "Baseline", "Importe Planificado"]
+    type: number
+  actual_amount:
+    aliases: ["Actual Amount", "Actual", "Spent", "Consumed", "Importe Real", "Consumido"]
+    type: number
+  currency:
+    aliases: ["Currency", "Moneda", "Divisa"]
+    type: text
+  period:
+    aliases: ["Period", "Month", "Periodo", "Mes"]
+    type: text
+  planned_hours:
+    aliases: ["Planned Hours", "Estimated Hours", "Horas Planificadas"]
+    type: number
+  actual_hours:
+    aliases: ["Actual Hours", "Spent Hours", "Horas Reales"]
+    type: number

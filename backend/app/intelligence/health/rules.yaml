@@ -1,0 +1,57 @@
+# Umbrales del motor de Project Health.
+#
+# Todo umbral vive aquí, nunca en el código. Cada resultado guarda con qué
+# versión se calculó, de modo que los históricos siguen siendo interpretables
+# (docs/05 §1).
+#
+# Estos son valores de partida razonables. Se calibran con el juicio del PM
+# durante las primeras semanas de uso (docs/08, C3).
+version: "1.0.0"
+
+schedule:
+  # Número de tareas críticas retrasadas
+  delayed_critical_tasks: {yellow: 1, orange: 3, red: 6}
+  # Porcentaje de tareas abiertas que van con retraso
+  delayed_ratio_pct: {yellow: 10, orange: 20, red: 35}
+  # Días de retraso acumulado del hito más próximo
+  next_milestone_delay_days: {yellow: 3, orange: 7, red: 14}
+
+budget:
+  # Desviación de importe consumido frente a planificado, en %
+  cost_variance_pct: {yellow: 5, orange: 15, red: 25}
+  # Desviación de horas reales frente a estimadas, en %
+  hours_variance_pct: {yellow: 10, orange: 20, red: 30}
+
+resources:
+  # Disponibilidad media del equipo, en % (menos es peor)
+  availability_pct: {yellow: 90, orange: 80, red: 70}
+  # Personas asignadas por encima del 100 %
+  overallocated_people: {yellow: 1, orange: 2, red: 4}
+  # Días de ausencia de un recurso marcado como clave
+  key_resource_absence_days: {yellow: 3, orange: 5, red: 10}
+
+dependencies:
+  # Tareas en estado BLOCKED
+  blocked_tasks: {yellow: 1, orange: 3, red: 6}
+  # Días transcurridos desde el inicio previsto de la tarea bloqueada más
+  # antigua. El contrato canónico no tiene una fecha de "bloqueada desde",
+  # así que esto es una aproximación, y así se enuncia en la razón.
+  oldest_block_days: {yellow: 5, orange: 10, red: 20}
+
+# Peso de cada dimensión en la media ponderada del Overall.
+# Las dimensiones en UNKNOWN se excluyen del cálculo y se reparte su peso.
+weights:
+  SCHEDULE: 0.30
+  BUDGET: 0.20
+  RESOURCES: 0.20
+  DEPENDENCIES: 0.15
+  SCOPE: 0.05
+  QUALITY: 0.05
+  CUSTOMER: 0.05
+
+aggregation:
+  # El Overall nunca queda más de este número de niveles por debajo de la peor
+  # dimensión. Evita que una media aritmética oculte un RED (docs/05 §1).
+  max_levels_below_worst: 1
+  # Si la proporción de dimensiones en UNKNOWN supera esto, el Overall es UNKNOWN.
+  unknown_ratio_limit: 0.5

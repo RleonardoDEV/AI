@@ -149,3 +149,94 @@ respuestas.
 
 **Lo único que sí necesito antes de empezar la parte de Microsoft (sprint 2) es A4**, porque
 determina cómo se construye el App Registration.
+
+---
+
+## F · Decisiones cerradas (28 ago 2026)
+
+Respuestas recibidas. Estas decisiones dejan de estar abiertas y pasan a `docs/03` como ADR.
+
+| Pregunta | Decisión | Consecuencia |
+| --- | --- | --- |
+| **A1 · Copilot** | Pendiente de consultar con IT | Se arranca con `LocalVectorProvider` (pgvector). La abstracción `RetrievalProvider` permite migrar a la Retrieval API sin reescribir, si IT confirma licencia |
+| **A2 · Dónde** | **Portátil corporativo** | `docker compose` en local. Sin Azure, sin nada publicado en Internet. Coste de infraestructura cero |
+| **A3 · LLM** | **Sin decidir todavía** | Se implementa `LLMClient` con implementaciones para OpenAI Platform y Azure OpenAI, más una `FakeLLMClient` determinista para tests. Ninguna decisión de diseño depende de esto |
+| **A4 · Permisos** | **`Sites.Selected` delegado** + concesión `read` al sitio del PoC | App Registration configurado con el ámbito estrecho. **No se pide `Files.Read.All`** (anularía la restricción). La Retrieval API queda descartada mientras esta opción esté vigente |
+| **B1 · Excel** | **Plantilla canónica propia** | Se define un contrato de datos estándar (§G) y el mapeo a los ficheros reales se ajusta después mediante YAML, sin tocar código |
+
+### Consecuencia sobre el orden de trabajo
+
+El sprint 2 (Microsoft Graph) queda desbloqueado en cuanto IT entregue los identificadores del
+App Registration. Todo lo demás se puede construir ya.
+
+---
+
+## G · Contrato de datos canónico (plantilla estándar)
+
+Formato que el sistema espera por defecto. Los ficheros reales se adaptan **modificando el YAML
+de mapeo**, nunca el código: `backend/app/ingestion/excel/mappings/*.yaml`.
+
+### `Project Plan.xlsx` · hoja `Tasks`
+
+| Columna | Tipo | Obligatoria | Notas |
+| --- | --- | --- | --- |
+| `Task ID` | texto | Sí | Único dentro del proyecto |
+| `Task` | texto | Sí | Descripción |
+| `Owner` | texto | No | Responsable |
+| `Planned Start` | fecha | No | |
+| `Planned End` | fecha | Sí | Base del cálculo de retraso |
+| `Actual Start` | fecha | No | |
+| `Actual End` | fecha | No | Vacío = no terminada |
+| `Status` | enum | Sí | Ver tabla de estados |
+| `Estimated Hours` | número | No | |
+| `Actual Hours` | número | No | |
+| `Milestone` | sí/no | No | Marca hito |
+| `Depends On` | texto | No | `Task ID` separados por coma |
+| `Critical` | sí/no | No | Ruta crítica |
+
+### `Risks.xlsx` · hoja `Risks`
+
+| Columna | Tipo | Obligatoria |
+| --- | --- | --- |
+| `Risk ID` · `Description` · `Status` | texto / texto / enum | Sí |
+| `Category` · `Owner` · `Mitigation` | texto | No |
+| `Probability` · `Impact` | enum `Low/Medium/High` | No |
+| `Identified On` · `Due Date` | fecha | No |
+
+### `Resources.xlsx` · hoja `Resources`
+
+| Columna | Tipo | Obligatoria |
+| --- | --- | --- |
+| `Resource` · `Role` | texto | `Resource` sí |
+| `Allocation %` | número 0–100 | No |
+| `Available From` · `Available To` | fecha | No |
+| `Absence Days` | número | No |
+| `Key Resource` | sí/no | No |
+
+### `Budget.xlsx` · hoja `Budget`
+
+| Columna | Tipo | Obligatoria |
+| --- | --- | --- |
+| `Item` | texto | Sí |
+| `Category` · `Currency` · `Period` | texto | No |
+| `Planned Amount` · `Actual Amount` | número | No |
+| `Planned Hours` · `Actual Hours` | número | No |
+
+### Estados canónicos y sinónimos aceptados
+
+| Canónico | Sinónimos reconocidos (sin distinguir mayúsculas) |
+| --- | --- |
+| `NOT_STARTED` | `not started`, `pending`, `to do`, `todo`, `new`, `pendiente`, `no iniciada`, `sin empezar` |
+| `IN_PROGRESS` | `in progress`, `wip`, `ongoing`, `started`, `en curso`, `en progreso`, `iniciada` |
+| `BLOCKED` | `blocked`, `on hold`, `waiting`, `impediment`, `bloqueada`, `bloqueado`, `en espera` |
+| `DONE` | `done`, `completed`, `complete`, `closed`, `finished`, `completada`, `cerrada`, `finalizada` |
+| `CANCELLED` | `cancelled`, `canceled`, `dropped`, `descartada`, `cancelada` |
+
+Un valor no reconocido **no se convierte en `NOT_STARTED`**: la fila va a cuarentena con el
+motivo `unknown_status`, y aparece en el informe de calidad de datos.
+
+### Fechas
+
+Se aceptan, en este orden: fecha nativa de Excel, número de serie de Excel, `dd/mm/aaaa`,
+`d/m/aaaa`, `aaaa-mm-dd`, `dd-mm-aaaa`, `dd.mm.aaaa`. Cualquier otro formato manda la fila a
+cuarentena con el motivo `unparseable_date`, **nunca se adivina**.

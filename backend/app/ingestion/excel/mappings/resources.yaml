@@ -1,0 +1,31 @@
+name: resources
+model: ResourceRow
+sheet:
+  names: ["Resources", "Team", "Allocation", "Recursos", "Equipo"]
+header:
+  detect: auto
+  row: null
+  max_scan_rows: 30
+columns:
+  resource:
+    aliases: ["Resource", "Name", "Person", "Member", "Recurso", "Nombre"]
+    type: text
+    required: true
+  role:
+    aliases: ["Role", "Position", "Profile", "Rol", "Perfil"]
+    type: text
+  allocation_pct:
+    aliases: ["Allocation %", "Allocation", "Assignment %", "FTE %", "Asignacion", "Dedicacion"]
+    type: number
+  available_from:
+    aliases: ["Available From", "Start Date", "Disponible Desde"]
+    type: date
+  available_to:
+    aliases: ["Available To", "End Date", "Disponible Hasta"]
+    type: date
+  absence_days:
+    aliases: ["Absence Days", "Absences", "PTO Days", "Vacation Days", "Dias Ausencia"]
+    type: number
+  key_resource:
+    aliases: ["Key Resource", "Key", "Critical Resource", "Recurso Clave"]
+    type: boolean

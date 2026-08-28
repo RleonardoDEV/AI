@@ -1,0 +1,42 @@
+name: risks
+model: RiskRow
+sheet:
+  names: ["Risks", "Risk Register", "Riesgos", "Registro de Riesgos"]
+header:
+  detect: auto
+  row: null
+  max_scan_rows: 30
+columns:
+  risk_id:
+    aliases: ["Risk ID", "ID", "Risk Id", "Id Riesgo", "Codigo"]
+    type: text
+    required: true
+  description:
+    aliases: ["Description", "Risk", "Risk Description", "Descripcion", "Riesgo"]
+    type: text
+    required: true
+  category:
+    aliases: ["Category", "Type", "Area", "Categoria", "Tipo"]
+    type: text
+  probability:
+    aliases: ["Probability", "Likelihood", "Probabilidad"]
+    type: level
+  impact:
+    aliases: ["Impact", "Severity", "Impacto"]
+    type: level
+  owner:
+    aliases: ["Owner", "Responsible", "Responsable"]
+    type: text
+  status:
+    aliases: ["Status", "State", "Estado"]
+    type: risk_status
+    required: true
+  mitigation:
+    aliases: ["Mitigation", "Mitigation Plan", "Action", "Mitigacion", "Plan de Accion"]
+    type: text
+  identified_on:
+    aliases: ["Identified On", "Date Identified", "Raised On", "Fecha Identificacion"]
+    type: date
+  due_date:
+    aliases: ["Due Date", "Target Date", "Fecha Limite"]
+    type: date
