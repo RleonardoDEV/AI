@@ -95,7 +95,16 @@ func set_terrain(i: int, t: int) -> void:
 	mark_dirty(i)
 	_refresh_shore_around(i)
 
+## Queues a cell for re-baking. If the queue grows past a quarter of the grid
+## it is cheaper to rebake everything, and this also keeps the queue bounded
+## when running headless (where nothing ever flushes it).
 func mark_dirty(i: int) -> void:
+	if full_redraw:
+		return
+	if dirty_cells.size() > (w * h) >> 2:
+		full_redraw = true
+		dirty_cells.resize(0)
+		return
 	dirty_cells.append(i)
 
 func _refresh_shore_around(i: int) -> void:
@@ -209,8 +218,11 @@ func consume_veg(i: int, amount: float) -> float:
 	mark_dirty(i)
 	return take
 
+## Drinkable includes *standing on the bank*: the baked shore band marks land
+## cells at the waterline. Without this, land animals walk to the coast, are
+## blocked by deep water they cannot enter, and die of thirst beside the sea.
 func is_drinkable(i: int) -> bool:
-	return Terrain.is_water(terrain[i]) or water[i] > 0.08 or snow[i] > 0.2
+	return Terrain.is_water(terrain[i]) or shore[i] >= 95 or water[i] > 0.08 or snow[i] > 0.2
 
 func add_water(i: int, amount: float) -> void:
 	if Terrain.is_water(terrain[i]):

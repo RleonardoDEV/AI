@@ -36,9 +36,9 @@ const SPEED_LABELS: PackedStringArray = ["II", "1X", "2X", "5X", "10X", "50X", "
 # --------------------------------------------------------------------------
 # Population
 # --------------------------------------------------------------------------
-const MAX_CREATURES: int = 900
-const SOFT_POP_CAP: int = 720
-const START_CREATURES: int = 110
+const MAX_CREATURES: int = 520
+const SOFT_POP_CAP: int = 420
+const START_CREATURES: int = 260
 const MAX_TREES: int = 1400
 const MAX_PARTICLES: int = 1200
 const MAX_SPECIES_SLOTS: int = 32
@@ -47,6 +47,15 @@ const MAX_SPECIES_SLOTS: int = 32
 # Spatial partitioning
 # --------------------------------------------------------------------------
 const GRID_CELL: int = 8
+
+# --------------------------------------------------------------------------
+# Sprite scale
+# --------------------------------------------------------------------------
+## How many sprite texels map onto one world cell. The terrain is always one
+## texel per cell (perfectly pixel-aligned); creature and flora sprites are
+## drawn at this ratio so a 16-texel tile covers ~3.2 cells, which keeps
+## bodies readable at close zoom without swamping the map at range.
+const SPRITE_TEXELS_PER_CELL: float = 5.0
 
 # --------------------------------------------------------------------------
 # Camera

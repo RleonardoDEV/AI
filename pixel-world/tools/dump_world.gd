@@ -1,8 +1,8 @@
-extends SceneTree
+extends Node
 ## Dev tool: generates worlds and writes their baked albedo to PNG.
 ## Run: godot --headless --script tools/dump_world.gd -- <seed> [count]
 
-func _initialize() -> void:
+func _ready() -> void:
 	var args := OS.get_cmdline_user_args()
 	var base_seed := 12345 if args.size() < 1 else int(args[0])
 	var count := 4 if args.size() < 2 else int(args[1])
@@ -23,4 +23,4 @@ func _initialize() -> void:
 			world.land_cells, world.water_cells, WorldGen.last_flora.size()])
 	sheet.resize(sheet.get_width() * 2, sheet.get_height() * 2, Image.INTERPOLATE_NEAREST)
 	sheet.save_png(out + "worlds.png")
-	quit()
+	get_tree().quit()

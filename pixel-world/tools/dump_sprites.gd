@@ -1,8 +1,8 @@
-extends SceneTree
+extends Node
 ## Dev tool: rasterises sample creature/flora sprites to PNG for visual review.
 ## Run: godot --headless --script tools/dump_sprites.gd
 
-func _initialize() -> void:
+func _ready() -> void:
 	var families := ["quadruped", "insect", "avian", "serpent", "blob", "aquatic"]
 	var sheet := Image.create(PixelArt.ATLAS_W, PixelArt.TILE * families.size() * 2, false, Image.FORMAT_RGBA8)
 	sheet.fill(Color(0.08, 0.09, 0.12, 1.0))
@@ -31,4 +31,4 @@ func _initialize() -> void:
 	flora.resize(flora.get_width() * 6, flora.get_height() * 6, Image.INTERPOLATE_NEAREST)
 	flora.save_png("/tmp/claude-0/-home-user-AI/1d56067b-106b-510d-82ed-d255f0b7f538/scratchpad/flora.png")
 	print("dumped")
-	quit()
+	get_tree().quit()

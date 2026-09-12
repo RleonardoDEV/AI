@@ -36,3 +36,7 @@ signal camera_focus_requested(world_pos: Vector2, zoom: float)
 signal toast(text: String, color: Color)
 signal screen_shake(strength: float)
 signal screen_flash(color: Color, strength: float)
+
+# --- Effects requests (world space) ---------------------------------------
+## kind: see EffectsManager.FX
+signal fx_burst(world_pos: Vector2, kind: int, strength: float)
