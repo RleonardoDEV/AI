@@ -126,15 +126,31 @@ static func blend_into(centroid: PackedFloat32Array, g: PackedFloat32Array, k: f
 static func norm(g: PackedFloat32Array, i: int) -> float:
 	return clampf((g[i] - MIN[i]) / maxf(0.0001, MAX[i] - MIN[i]), 0.0, 1.0)
 
-## Phenotype colour. Herbivores trend green/blue, carnivores red/orange: the
-## hue gene biases within that band so diet stays readable at a glance.
+## Phenotype colour.
+##
+## Diet selects a hue band and the hue gene varies within it, so trophic role
+## is readable at a glance while lineages still drift apart visually. The
+## bands deliberately avoid grass-green: plant eaters coloured like the ground
+## they stand on are invisible, which was the first thing the screenshots
+## showed. Plant eaters therefore run cyan-to-violet and meat eaters
+## amber-to-crimson — both read cleanly over grass, sand, rock and snow.
 static func color_of(g: PackedFloat32Array) -> Color:
-	var diet: float = g[G.DIET]
-	var band_center := lerpf(0.34, 0.02, clampf(diet, 0.0, 1.0))
-	var hue := fposmod(band_center + (g[G.HUE] - 0.5) * 0.33, 1.0)
-	var sat: float = clampf(g[G.SAT] * 0.75 + 0.22, 0.0, 1.0)
-	var val: float = clampf(g[G.VAL] * 0.62 + 0.45, 0.0, 1.2)
-	return Color.from_hsv(hue, sat, minf(val, 1.0))
+	var diet: float = clampf(g[G.DIET], 0.0, 1.0)
+	# Three discrete trophic bands rather than one continuous ramp: a ramp
+	# necessarily passes through green and cyan, which are exactly the colours
+	# of grass and water.
+	var band_center := 0.72   # plant eaters: blue -> violet -> magenta
+	var band_span := 0.15
+	if diet >= 0.62:
+		band_center = 0.005  # meat eaters: crimson -> orange
+		band_span = 0.06
+	elif diet >= 0.38:
+		band_center = 0.13   # omnivores: amber -> gold
+		band_span = 0.055
+	var hue := fposmod(band_center + (g[G.HUE] - 0.5) * band_span * 2.0, 1.0)
+	var sat: float = clampf(g[G.SAT] * 0.36 + 0.50, 0.0, 1.0)
+	var val: float = clampf(g[G.VAL] * 0.38 + 0.70, 0.0, 1.0)
+	return Color.from_hsv(hue, sat, val)
 
 static func describe(g: PackedFloat32Array, i: int) -> String:
 	return "%s %.2f" % [NAMES[i], g[i]]

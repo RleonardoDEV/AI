@@ -34,6 +34,12 @@ var wet_cells: PackedInt32Array = PackedInt32Array()
 var dirty_cells: PackedInt32Array = PackedInt32Array()
 var full_redraw: bool = true
 
+## Cells whose *terrain or elevation* differs from what the generator would
+## produce for this seed. Saving stores only these, so a world file is a seed
+## plus a delta rather than a dump of the whole grid.
+var modified: PackedInt32Array = PackedInt32Array()
+var _modified_flag: PackedByteArray = PackedByteArray()
+
 func _init(width: int = GameConfig.WORLD_W, height: int = GameConfig.WORLD_H) -> void:
 	w = width
 	h = height
@@ -51,6 +57,7 @@ func _init(width: int = GameConfig.WORLD_W, height: int = GameConfig.WORLD_H) ->
 	shade = PackedByteArray(); shade.resize(n)
 	variation = PackedByteArray(); variation.resize(n)
 	shore = PackedByteArray(); shore.resize(n)
+	_modified_flag = PackedByteArray(); _modified_flag.resize(n)
 
 # --------------------------------------------------------------------------
 # Indexing
@@ -88,16 +95,62 @@ func set_terrain(i: int, t: int) -> void:
 		water_cells += 1
 		land_cells -= 1
 	terrain[i] = t
+	mark_modified(i)
 	if Terrain.is_water(t) or t == Terrain.T.LAVA:
 		veg[i] = 0.0
 		fire[i] = 0.0
 	veg[i] = minf(veg[i], Terrain.FERTILITY[t])
 	mark_dirty(i)
-	_refresh_shore_around(i)
+	if _bulk:
+		var bx := i % w
+		var by := int(i / w)
+		_bulk_min.x = mini(_bulk_min.x, bx)
+		_bulk_min.y = mini(_bulk_min.y, by)
+		_bulk_max.x = maxi(_bulk_max.x, bx)
+		_bulk_max.y = maxi(_bulk_max.y, by)
+	else:
+		_refresh_shore_around(i)
 
 ## Queues a cell for re-baking. If the queue grows past a quarter of the grid
 ## it is cheaper to rebake everything, and this also keeps the queue bounded
 ## when running headless (where nothing ever flushes it).
+## Records a permanent change to the terrain at `i` (idempotent).
+func mark_modified(i: int) -> void:
+	if _modified_flag[i] == 0:
+		_modified_flag[i] = 1
+		modified.append(i)
+
+func clear_modified() -> void:
+	modified.resize(0)
+	for i in _modified_flag.size():
+		_modified_flag[i] = 0
+
+## Bulk-edit mode: shoreline recomputation is deferred while a tool paints a
+## whole region. Recomputing per cell made a single meteor impact cost hundreds
+## of thousands of neighbourhood lookups and produced a visible frame hitch.
+var _bulk: bool = false
+var _bulk_min := Vector2i.ZERO
+var _bulk_max := Vector2i.ZERO
+
+func begin_bulk_edit() -> void:
+	_bulk = true
+	_bulk_min = Vector2i(w, h)
+	_bulk_max = Vector2i(-1, -1)
+
+func end_bulk_edit() -> void:
+	_bulk = false
+	if _bulk_max.x < 0:
+		return
+	var x0 := maxi(0, _bulk_min.x - 3)
+	var y0 := maxi(0, _bulk_min.y - 3)
+	var x1 := mini(w - 1, _bulk_max.x + 3)
+	var y1 := mini(h - 1, _bulk_max.y + 3)
+	for y in range(y0, y1 + 1):
+		for x in range(x0, x1 + 1):
+			var j := y * w + x
+			shore[j] = _compute_shore(x, y)
+			mark_dirty(j)
+
 func mark_dirty(i: int) -> void:
 	if full_redraw:
 		return

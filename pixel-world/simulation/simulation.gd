@@ -64,10 +64,13 @@ func speed() -> float:
 func speed_label() -> String:
 	return GameConfig.SPEED_LABELS[speed_index]
 
-func set_speed_index(i: int) -> void:
+## `announce` is false when applying a change that came *from* the UI, which
+## is what keeps the speed signal from feeding back into itself.
+func set_speed_index(i: int, announce: bool = true) -> void:
 	speed_index = clampi(i, 0, GameConfig.SPEEDS.size() - 1)
 	paused = speed_index == 0
-	EventBus.speed_changed.emit(speed())
+	if announce:
+		EventBus.speed_changed.emit(speed())
 
 # --------------------------------------------------------------------------
 # Construction
@@ -208,7 +211,10 @@ func advance(real_delta: float, view_rect: Rect2) -> int:
 	profiler.end("grid")
 	_tune_budget(real_delta)
 	var pop: int = maxi(1, entities.population)
-	stride = clampi(int(ceil(float(pop * ticks) / maxf(1.0, _budget))), 1, 16)
+	# The upper bound must be generous: clamping it too low (it was 16) means
+	# the adaptive budget cannot actually be met at high speeds, and the frame
+	# rate collapses instead of the update resolution.
+	stride = clampi(int(ceil(float(pop * ticks) / maxf(1.0, _budget))), 1, 64)
 	ctx.stride = stride
 	ctx.dt = dt_per_tick
 	profiler.begin("creatures")
@@ -258,6 +264,24 @@ func advance(real_delta: float, view_rect: Rect2) -> int:
 	stats.maybe_sample(tick, entities.population, registry.living_count(),
 			stats.avg_temperature, stats.total_vegetation, stats.carnivores)
 	return ticks
+
+## Centre of the busiest area of the world (densest spatial-grid bucket).
+## Used by the "find life" camera button and by the screenshot harness.
+func population_hotspot() -> Vector2:
+	var counts := entities.grid.bucket_counts()
+	var dims := entities.grid.dims()
+	var best := -1
+	var best_n := 0
+	for i in counts.size():
+		if counts[i] > best_n:
+			best_n = counts[i]
+			best = i
+	if best < 0:
+		return Vector2(float(world.w) * 0.5, float(world.h) * 0.5)
+	var cell := float(GameConfig.GRID_CELL)
+	var bx := float(best % dims.x)
+	var by := float(int(best / dims.x))
+	return Vector2((bx + 0.5) * cell, (by + 0.5) * cell)
 
 ## Nudges the creature-update budget toward whatever the device can sustain.
 ## Reacts slowly so it settles instead of oscillating with frame-time noise.

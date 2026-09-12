@@ -281,7 +281,10 @@ static func _blit_tile(img: Image, detail: Image, spec: Dictionary,
 					edge = true
 					break
 			if edge:
-				out_shade[idx] = shade[idx] * (0.34 if m2 == M.BODY else 0.55)
+				# Near-black rim: `modulate` is a multiply, so a very low grey
+				# stays dark whatever colour the creature's DNA gives it. This is
+				# what keeps a silhouette readable over grass, sand or water.
+				out_shade[idx] = 0.10 if m2 == M.BODY else shade[idx] * 0.34
 
 	for py in TILE:
 		for px in TILE:
@@ -466,3 +469,83 @@ static func build_noise(size: int = 128, noise_seed: int = 1337) -> ImageTexture
 			img.set_pixel(x, y, Color(val * 0.5 + 0.5, hi, 0.0, 1.0))
 	var tex := ImageTexture.create_from_image(img)
 	return tex
+
+# --------------------------------------------------------------------------
+# UI icons
+# --------------------------------------------------------------------------
+## Tool glyphs, authored as small bitmaps so the whole UI stays asset-free.
+## '#' body, '*' highlight, '+' shadow, '.' empty.
+const ICON_SIZE: int = 12
+const ICON_ART: Array = [
+	# INSPECT - magnifier
+	["...#####....", "..#.....#...", ".#.......#..", ".#.......#..",
+	 ".#.......#..", "..#.....#...", "...#####....", "......##....",
+	 ".......##...", "........##..", ".........##.", "............"],
+	# RAIN - cloud with drops
+	["............", "...#####....", "..#######...", ".#########..",
+	 ".#########..", "..#######...", "............", "..+..+..+...",
+	 "..+..+..+...", "...+..+..+..", "............", "............"],
+	# FIRE - flame
+	[".....#......", "....##......", "....###.....", "...#####....",
+	 "..###*###...", "..##***##...", ".###***###..", ".###***###..",
+	 "..##***##...", "...######...", "....####....", "............"],
+	# WATER - droplet
+	[".....#......", ".....#......", "....###.....", "....###.....",
+	 "...#####....", "..#######...", "..###*###...", ".####*####..",
+	 ".#########..", "..#######...", "...#####....", "............"],
+	# PLANT - sprout
+	["............", "......#.....", "...##.#.##..", "..####.####.",
+	 "..###...###.", "...##.#.##..", "......#.....", "......#.....",
+	 ".....###....", "....#####...", "...+++++++..", "............"],
+	# ROCK
+	["............", "............", "....####....", "...######...",
+	 "..###****#..", ".###*****#..", ".##*****##..", ".#*******#..",
+	 ".#########..", "..#######...", "............", "............"],
+	# METEOR - bolide with trail
+	[".+..........", "..+.........", "...++.......", "....++......",
+	 ".....###....", "....#####...", "....##*##...", "....#####...",
+	 ".....###....", "............", "............", "............"],
+	# VOLCANO - cone with ejecta
+	["....*.*.....", ".....*......", "....###.....", "...#####....",
+	 "...##*##....", "..###*###...", "..#######...", ".#########..",
+	 ".#########..", "###########.", "############", "............"],
+	# ICE - snowflake
+	[".....#......", "...#.#.#....", "....###.....", ".#..###..#..",
+	 "..#.###.#...", "#####*#####.", "..#.###.#...", ".#..###..#..",
+	 "....###.....", "...#.#.#....", ".....#......", "............"],
+	# WIND - streaks
+	["............", "..####......", ".#....##....", "......##....",
+	 "..#####.....", "............", "....######..", "...#.....##.",
+	 ".........##.", "....#####...", "............", "............"],
+	# CREATURE - paw print
+	["............", "..##....##..", ".####..####.", ".####..####.",
+	 "..##....##..", "............", "..########..", ".##########.",
+	 ".##########.", "..########..", "...######...", "............"],
+]
+
+## One row of icons, ICON_SIZE tall. Glyphs are drawn in greys so the UI can
+## modulate each button with its own accent colour.
+static func build_icon_atlas() -> ImageTexture:
+	var n := ICON_ART.size()
+	var img := Image.create(ICON_SIZE * n, ICON_SIZE, false, Image.FORMAT_RGBA8)
+	img.fill(Color(0, 0, 0, 0))
+	for i in n:
+		var art: Array = ICON_ART[i]
+		for y in mini(ICON_SIZE, art.size()):
+			var row: String = art[y]
+			for x in mini(ICON_SIZE, row.length()):
+				var ch := row[x]
+				var col := Color(0, 0, 0, 0)
+				match ch:
+					"#":
+						col = Color(1, 1, 1, 1)
+					"*":
+						col = Color(0.72, 0.72, 0.72, 1)
+					"+":
+						col = Color(0.5, 0.5, 0.5, 1)
+				if col.a > 0.0:
+					img.set_pixel(i * ICON_SIZE + x, y, col)
+	return ImageTexture.create_from_image(img)
+
+static func icon_region(tool_id: int) -> Rect2:
+	return Rect2(float(tool_id * ICON_SIZE), 0.0, float(ICON_SIZE), float(ICON_SIZE))

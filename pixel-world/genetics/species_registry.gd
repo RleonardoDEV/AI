@@ -60,7 +60,7 @@ static func starting_profiles() -> Array[Dictionary]:
 		{ # Crawler: insect scavenger, breeds fast
 			"name_family": PixelArt.Family.INSECT,
 			"genes": {G.SPEED: 0.42, G.SIZE: 0.06, G.VISION: 0.20, G.AGGRESSION: 0.30,
-				G.METABOLISM: 0.70, G.FERTILITY: 0.92, G.LIFESPAN: 0.10, G.TEMP_PREF: 0.68,
+				G.METABOLISM: 0.74, G.FERTILITY: 0.80, G.LIFESPAN: 0.10, G.TEMP_PREF: 0.68,
 				G.DIET: 0.42, G.HUE: 0.30, G.SAT: 0.45, G.VAL: 0.40, G.SOCIAL: 0.68,
 				G.FEAR: 0.50, G.STAMINA: 0.40, G.AQUATIC: 0.20},
 		},

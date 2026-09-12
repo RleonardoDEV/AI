@@ -4,7 +4,11 @@ extends RefCounted
 ## colour grade every renderer reads. One source of truth for "what time is it
 ## and what colour is the light".
 
-var tick: int = 0
+## The world opens in morning light: starting at tick 0 would drop the player
+## into the middle of the night on first launch.
+const START_PHASE: float = 0.27
+
+var tick: int = int(float(GameConfig.TICKS_PER_DAY) * START_PHASE)
 var _tick_frac: float = 0.0
 var day: int = 0
 var year: int = 0
@@ -23,15 +27,15 @@ var ambient: Color = Color.WHITE
 
 const _KEY_TIMES: PackedFloat32Array = [0.0, 0.18, 0.24, 0.30, 0.50, 0.70, 0.76, 0.82, 1.0]
 const _KEY_COLORS: PackedColorArray = [
-	Color(0.30, 0.36, 0.62),   # midnight
-	Color(0.34, 0.38, 0.62),   # late night
-	Color(0.72, 0.52, 0.58),   # dawn
+	Color(0.44, 0.50, 0.76),   # midnight (moonlit, still readable)
+	Color(0.46, 0.52, 0.76),   # late night
+	Color(0.78, 0.58, 0.62),   # dawn
 	Color(1.02, 0.86, 0.74),   # sunrise
 	Color(1.03, 1.00, 0.96),   # noon
 	Color(1.05, 0.92, 0.80),   # afternoon
 	Color(1.08, 0.72, 0.52),   # sunset
-	Color(0.62, 0.46, 0.60),   # dusk
-	Color(0.30, 0.36, 0.62),   # midnight
+	Color(0.66, 0.50, 0.66),   # dusk
+	Color(0.44, 0.50, 0.76),   # midnight
 ]
 
 ## Advances the clock by `seconds` of simulated time and returns

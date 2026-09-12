@@ -12,6 +12,11 @@ const TOOL_NAMES: PackedStringArray = [
 	"Inspect", "Rain", "Fire", "Water", "Plant", "Rock",
 	"Meteor", "Volcano", "Ice", "Wind", "Creature",
 ]
+## Captions that fit under a 30px icon without being truncated mid-word.
+const TOOL_SHORT: PackedStringArray = [
+	"LOOK", "RAIN", "FIRE", "WATER", "PLANT", "ROCK",
+	"METEOR", "VOLC", "ICE", "WIND", "LIFE",
+]
 
 # --------------------------------------------------------------------------
 # Painting tools
@@ -62,6 +67,7 @@ static func flood(ctx: SimContext, center: Vector2, radius: float) -> void:
 			return
 		# Sink the ground so the depth gradient reads correctly.
 		world.elevation[i] = minf(world.elevation[i], GameConfig.SEA_LEVEL - 0.02 - t * 0.06)
+		world.mark_modified(i)
 		world.snow[i] = 0.0
 		world.fire[i] = 0.0
 		world.set_terrain(i, Terrain.T.SHALLOW if t < 0.65 else Terrain.T.WATER)
@@ -100,6 +106,7 @@ static func raise_rock(ctx: SimContext, center: Vector2, radius: float) -> void:
 	var world := ctx.world
 	_for_disc(world, center, radius, func(i: int, t: float) -> void:
 		world.elevation[i] = clampf(world.elevation[i] + t * 0.22, 0.0, 1.0)
+		world.mark_modified(i)
 		world.fire[i] = 0.0
 		world.water[i] = 0.0
 		if t > 0.35:
@@ -151,6 +158,7 @@ static func meteor(ctx: SimContext, center: Vector2, power: float = 1.0) -> void
 	# Crater: molten core, scorched floor, raised rim.
 	_for_disc(world, center, radius * 1.35, func(i: int, t: float) -> void:
 		var d := 1.0 - t
+		world.mark_modified(i)
 		if t > 0.78:
 			world.elevation[i] = clampf(world.elevation[i] - 0.06 * power, 0.0, 1.0)
 			world.set_terrain(i, Terrain.T.LAVA)
@@ -194,6 +202,7 @@ static func erupt(ctx: SimContext, center: Vector2, power: float = 1.0) -> void:
 	var radius: float = 7.0 + power * 7.0
 	_for_disc(world, center, radius, func(i: int, t: float) -> void:
 		world.elevation[i] = clampf(world.elevation[i] + t * 0.3 * power, 0.0, 1.0)
+		world.mark_modified(i)
 		world.snow[i] = 0.0
 		world.water[i] = 0.0
 		world.temperature[i] += t * 120.0
@@ -246,6 +255,9 @@ static func spawn_life(ctx: SimContext, center: Vector2, count: int = 1) -> int:
 ## Visits every cell in a disc, passing the cell index and a 0..1 falloff where
 ## 1 is the centre.
 static func _for_disc(world: WorldData, center: Vector2, radius: float, fn: Callable) -> void:
+	# Terrain edits inside a disc defer their shoreline recomputation to a
+	# single regional pass (see WorldData.begin_bulk_edit).
+	world.begin_bulk_edit()
 	var r := int(ceil(radius))
 	var cx := int(center.x)
 	var cy := int(center.y)
@@ -263,3 +275,4 @@ static func _for_disc(world: WorldData, center: Vector2, radius: float, fn: Call
 				continue
 			var t: float = 1.0 - sqrt(d2) / maxf(0.001, radius)
 			fn.call(y * world.w + x, t)
+	world.end_bulk_edit()

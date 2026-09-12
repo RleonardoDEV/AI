@@ -55,7 +55,7 @@ const GRID_CELL: int = 8
 ## texel per cell (perfectly pixel-aligned); creature and flora sprites are
 ## drawn at this ratio so a 16-texel tile covers ~3.2 cells, which keeps
 ## bodies readable at close zoom without swamping the map at range.
-const SPRITE_TEXELS_PER_CELL: float = 5.0
+const SPRITE_TEXELS_PER_CELL: float = 4.2
 
 # --------------------------------------------------------------------------
 # Camera

@@ -157,7 +157,7 @@ func is_adult() -> bool:
 ## Visual scale in world cells (a newborn is visibly smaller).
 func draw_scale() -> float:
 	var growth: float = clampf(age / maxf(0.01, maturity()), 0.35, 1.0)
-	return (0.55 + body_size * 0.5) * growth
+	return (0.52 + body_size * 0.38) * growth
 
 func bite_power() -> float:
 	return (0.18 + body_size * 0.55) * (0.35 + aggression) * clampf(health, 0.2, 1.0)

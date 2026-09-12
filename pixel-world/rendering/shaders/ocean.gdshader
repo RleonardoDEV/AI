@@ -13,8 +13,8 @@ uniform float day_factor : hint_range(0.0, 1.0) = 1.0;
 uniform vec3 ambient_tint : source_color = vec3(1.0);
 uniform float cloud_amount : hint_range(0.0, 1.0) = 0.35;
 uniform float cloud_scroll = 0.0;
-uniform vec3 deep_color : source_color = vec3(0.035, 0.078, 0.16);
-uniform vec3 abyss_color : source_color = vec3(0.012, 0.024, 0.055);
+uniform vec3 deep_color : source_color = vec3(0.055, 0.118, 0.219);
+uniform vec3 abyss_color : source_color = vec3(0.020, 0.040, 0.085);
 uniform vec2 world_center = vec2(128.0, 128.0);
 uniform float world_radius = 190.0;
 
@@ -26,7 +26,7 @@ void fragment() {
 
 	// Fade to abyss away from the landmass: keeps focus on the world.
 	float d = length((wuv - world_center) / world_radius);
-	vec3 col = mix(deep_color, abyss_color, clamp((d - 0.55) * 1.15, 0.0, 1.0));
+	vec3 col = mix(deep_color, abyss_color, clamp((d - 0.35) * 1.05, 0.0, 1.0));
 	col += vec3(0.022, 0.05, 0.075) * (wave - 0.5) * 2.0;
 
 	float glint = smoothstep(0.80, 0.96, wave)

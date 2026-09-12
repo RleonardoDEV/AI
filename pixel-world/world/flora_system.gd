@@ -36,10 +36,12 @@ func _init(cap: int = GameConfig.MAX_TREES) -> void:
 		_free[cap - 1 - i] = i
 
 func clear() -> void:
+	# Resize first: the free list shrinks as plants are allocated, so filling
+	# it before restoring its length writes out of bounds.
+	_free.resize(capacity)
 	for i in capacity:
 		active[i] = 0
 		_free[capacity - 1 - i] = i
-	_free.resize(capacity)
 	count = 0
 
 func add(at: Vector2, var_id: int, stage_id: int, kind_id: int, rng: RandomNumberGenerator) -> int:

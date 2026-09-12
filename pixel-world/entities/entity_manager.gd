@@ -10,6 +10,8 @@ extends RefCounted
 
 const CORPSE_POOL: int = 320
 const DAY_SECONDS: float = float(GameConfig.TICKS_PER_DAY) * GameConfig.TICK_DT
+## Population share above which a species starts suppressing its own breeding.
+const DOMINANCE_SHARE: float = 0.42
 
 var creatures: Array[Creature] = []
 var alive_ids: PackedInt32Array = PackedInt32Array()
@@ -129,6 +131,14 @@ func update_corpses(ctx: SimContext, dt: float) -> void:
 			continue
 		_corpse_live.append(i)
 
+## Occupied corpse slots (compact, refreshed once per frame).
+func live_corpses() -> PackedInt32Array:
+	return _corpse_live
+
+## 0..1 remaining freshness of a corpse, used to fade it out.
+func corpse_fade(i: int) -> float:
+	return clampf(corpse_life[i] / 20.0, 0.0, 1.0)
+
 ## Nearest carrion within radius, or -1.
 func find_corpse(at: Vector2, radius: float) -> int:
 	if corpse_count <= 0:
@@ -177,6 +187,15 @@ func try_reproduce(ctx: SimContext, a: Creature, b: Creature) -> Creature:
 	if population > GameConfig.SOFT_POP_CAP:
 		crowd_pressure = maxf(crowd_pressure,
 			float(population - GameConfig.SOFT_POP_CAP) / float(GameConfig.MAX_CREATURES - GameConfig.SOFT_POP_CAP))
+	# Interspecific competition: a species that already owns most of the
+	# biosphere breeds against rising resistance. Without it, whichever
+	# r-strategist wins first crowds every other lineage off the map and the
+	# world becomes one colour.
+	if population > 40:
+		var share := float(a.species.population) / float(population)
+		if share > DOMINANCE_SHARE:
+			crowd_pressure = maxf(crowd_pressure,
+					clampf((share - DOMINANCE_SHARE) / (1.0 - DOMINANCE_SHARE), 0.0, 0.85))
 	if ctx.rng.randf() < crowd_pressure * 0.9:
 		a.breed_cooldown = 3.0
 		return null

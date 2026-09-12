@@ -30,10 +30,19 @@ func _ready() -> void:
 	EventBus.camera_focus_requested.connect(_on_focus_requested)
 
 func _on_focus_requested(world_pos: Vector2, z: float) -> void:
-	position = world_pos
 	if z > 0.0:
 		target_zoom = clampf(z, GameConfig.ZOOM_MIN, GameConfig.ZOOM_MAX)
+		zoom = Vector2.ONE * target_zoom
+	position = world_pos
 	_velocity = Vector2.ZERO
+	# Clamp after moving, otherwise a focus request near an edge shows a
+	# screenful of empty ocean.
+	_clamp_position()
+
+## Centres the camera on a world position, keeping the view inside the world.
+func center_on(world_pos: Vector2) -> void:
+	position = world_pos
+	_clamp_position()
 
 ## Frames the whole world.
 func frame_world() -> void:
