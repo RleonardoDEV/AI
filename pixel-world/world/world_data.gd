@@ -195,21 +195,6 @@ func recompute_shore() -> void:
 		for x in w:
 			shore[y * w + x] = _compute_shore(x, y)
 
-## Baked hillshade from the elevation gradient — this is what gives the map its
-## sense of relief at a glance.
-func recompute_shade() -> void:
-	for y in h:
-		for x in w:
-			var i := y * w + x
-			var xl := elevation[y * w + clamp_x(x - 1)]
-			var xr := elevation[y * w + clamp_x(x + 1)]
-			var yu := elevation[clamp_y(y - 1) * w + x]
-			var yd := elevation[clamp_y(y + 1) * w + x]
-			# Light from the north-west.
-			var slope := (xl - xr) * 0.5 + (yu - yd) * 0.5
-			var s := clampf(0.5 + slope * 7.0, 0.0, 1.0)
-			shade[i] = int(s * 255.0)
-
 # --------------------------------------------------------------------------
 # Presentation
 # --------------------------------------------------------------------------

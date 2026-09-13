@@ -18,7 +18,6 @@ var col: PackedColorArray
 var kind: PackedByteArray
 var drag: PackedFloat32Array
 var grav: PackedFloat32Array
-var spin: PackedFloat32Array
 var active: PackedByteArray
 var count: int = 0
 var _cursor: int = 0
@@ -34,7 +33,6 @@ func _init(capacity: int) -> void:
 	kind = PackedByteArray(); kind.resize(cap)
 	drag = PackedFloat32Array(); drag.resize(cap)
 	grav = PackedFloat32Array(); grav.resize(cap)
-	spin = PackedFloat32Array(); spin.resize(cap)
 	active = PackedByteArray(); active.resize(cap)
 
 func clear() -> void:
@@ -43,7 +41,7 @@ func clear() -> void:
 	count = 0
 
 func emit(p: Vector2, v: Vector2, ttl: float, sz: float, c: Color,
-		k: int = Kind.PIXEL, dg: float = 1.6, gv: float = 0.0, sp: float = 0.0) -> int:
+		k: int = Kind.PIXEL, dg: float = 1.6, gv: float = 0.0) -> int:
 	if count >= cap:
 		return -1
 	var slot := -1
@@ -64,7 +62,6 @@ func emit(p: Vector2, v: Vector2, ttl: float, sz: float, c: Color,
 	kind[slot] = k
 	drag[slot] = dg
 	grav[slot] = gv
-	spin[slot] = sp
 	active[slot] = 1
 	count += 1
 	return slot

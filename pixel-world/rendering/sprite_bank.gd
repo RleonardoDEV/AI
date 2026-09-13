@@ -22,7 +22,6 @@ func _init() -> void:
 
 ## Rasterises a species silhouette into its slot (idempotent per genome).
 func ensure(sp: Species) -> void:
-	var key := "%d:%d" % [sp.sprite_slot, sp.id]
 	if _built_slots.get(sp.sprite_slot, -1) == sp.id:
 		return
 	var g := sp.centroid

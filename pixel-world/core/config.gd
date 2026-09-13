@@ -67,7 +67,6 @@ const ZOOM_DEFAULT: float = 4.0
 # --------------------------------------------------------------------------
 # Ecology balance
 # --------------------------------------------------------------------------
-const VEG_MAX: float = 1.0
 const VEG_REGROW: float = 0.0165
 const FIRE_SPREAD_BASE: float = 0.14
 const FIRE_FUEL_BURN: float = 0.55
@@ -80,8 +79,6 @@ var show_minimap: bool = true
 var show_debug: bool = false
 var particles_enabled: bool = true
 var weather_fx_enabled: bool = true
-var show_creature_names: bool = false
-var audio_enabled: bool = true
 
 const SETTINGS_PATH := "user://settings.cfg"
 
@@ -94,7 +91,6 @@ func save_settings() -> void:
 	cfg.set_value("ui", "show_debug", show_debug)
 	cfg.set_value("fx", "particles", particles_enabled)
 	cfg.set_value("fx", "weather", weather_fx_enabled)
-	cfg.set_value("audio", "enabled", audio_enabled)
 	cfg.save(SETTINGS_PATH)
 
 func load_settings() -> void:
@@ -105,4 +101,3 @@ func load_settings() -> void:
 	show_debug = cfg.get_value("ui", "show_debug", false)
 	particles_enabled = cfg.get_value("fx", "particles", true)
 	weather_fx_enabled = cfg.get_value("fx", "weather", true)
-	audio_enabled = cfg.get_value("audio", "enabled", true)

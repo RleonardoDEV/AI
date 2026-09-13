@@ -6,3 +6,6 @@ build/
 
 # Local overrides
 override.cfg
+
+# Godot import metadata for documentation images
+screenshots/*.import

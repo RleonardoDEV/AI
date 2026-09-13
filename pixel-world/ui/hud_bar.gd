@@ -39,8 +39,8 @@ func _stat(parent: Node, caption: String, value: String) -> Label:
 	return val
 
 func refresh(sim: Simulation) -> void:
-	_year.text = _commas(sim.climate.year)
-	_pop.text = _commas(sim.population())
+	_year.text = HudFormat.commas(sim.climate.year)
+	_pop.text = HudFormat.commas(sim.population())
 	_species.text = str(sim.species_count())
 	_temp.text = "%d°C" % int(round(sim.stats.avg_temperature))
 	var ev := ""
@@ -53,14 +53,3 @@ func refresh(sim: Simulation) -> void:
 	_temp.add_theme_color_override("font_color",
 			UITheme.BAD if sim.stats.avg_temperature > 32.0
 			else (UITheme.ACCENT if sim.stats.avg_temperature < 2.0 else UITheme.TEXT))
-
-static func _commas(n: int) -> String:
-	var s := str(absi(n))
-	var out := ""
-	var c := 0
-	for i in range(s.length() - 1, -1, -1):
-		out = s[i] + out
-		c += 1
-		if c % 3 == 0 and i > 0:
-			out = "," + out
-	return ("-" if n < 0 else "") + out

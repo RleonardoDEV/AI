@@ -91,18 +91,14 @@ static func draw_gene_bar(ci: CanvasItem, rect: Rect2, value: float, color: Colo
 
 ## Draws a filled sparkline for a history series.
 static func draw_series(ci: CanvasItem, rect: Rect2, data: PackedFloat32Array,
-		color: Color, fill: bool = true, min_override: float = INF,
-		max_override: float = -INF) -> void:
+		color: Color, fill: bool = true) -> void:
 	if data.size() < 2:
 		return
-	var lo: float = min_override
-	var hi: float = max_override
-	if lo == INF or hi == -INF:
-		lo = data[0]
-		hi = data[0]
-		for v in data:
-			lo = minf(lo, v)
-			hi = maxf(hi, v)
+	var lo: float = data[0]
+	var hi: float = data[0]
+	for v in data:
+		lo = minf(lo, v)
+		hi = maxf(hi, v)
 	var span: float = maxf(0.0001, hi - lo)
 	var pts := PackedVector2Array()
 	var n := data.size()

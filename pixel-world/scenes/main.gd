@@ -38,7 +38,6 @@ var _reveal: float = 0.0
 var _shake: float = 0.0
 var _shake_offset: Vector2 = Vector2.ZERO
 var _backdrop_mat: ShaderMaterial
-var _fps_accum: float = 0.0
 var _frame_ms: float = 0.0
 
 # --- Dev screenshot harness ----------------------------------------------
