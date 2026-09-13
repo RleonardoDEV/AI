@@ -90,7 +90,7 @@ func update(ctx: SimContext, dt: float) -> void:
 		if world.fire[j] > 0.05:
 			if rng.randf() < eff_dt * 0.7:
 				remove(i)
-				EventBus.fx_burst.emit(p, 1, 0.8)
+				EventBus.fx_burst.emit(p, EventBus.FX_BURN, 0.8)
 				continue
 		var terr: int = world.terrain[j]
 		if Terrain.is_water(terr) or terr == Terrain.T.LAVA:

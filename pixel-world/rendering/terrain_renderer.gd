@@ -93,6 +93,11 @@ func set_ambient(tint: Color, day_factor: float) -> void:
 	_mat.set_shader_parameter("ambient_tint", Vector3(tint.r, tint.g, tint.b))
 	_mat.set_shader_parameter("day_factor", day_factor)
 
+## 0 = nothing visible, 1 = fully materialised (opening animation).
+func set_reveal(v: float) -> void:
+	if _mat != null:
+		_mat.set_shader_parameter("reveal", v)
+
 func set_weather(rain: float, wind: Vector2, cloud_amount: float, heat: float) -> void:
 	if _mat == null:
 		return

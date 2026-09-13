@@ -186,7 +186,7 @@ func _strike_lightning(ctx: SimContext) -> void:
 			continue
 		var p := Vector2(float(x) + 0.5, float(y) + 0.5)
 		EventBus.screen_flash.emit(Color(0.85, 0.92, 1.0), 0.55)
-		EventBus.fx_burst.emit(p, 10, 6.0)
+		EventBus.fx_burst.emit(p, EventBus.FX_LIGHTNING, 6.0)
 		# Wet storms often strike without igniting anything.
 		if rain_intensity < 0.65 and ctx.rng.randf() < 0.55:
 			WorldTools.ignite(ctx, p, 2.0, 0.8)
@@ -263,7 +263,7 @@ func _tick_event(ctx: SimContext, dt: float, water_sys: WaterSystem, growth: Gro
 					var vp := Vector2(float(vi % ctx.world.w) + 0.5, float(int(vi / ctx.world.w)) + 0.5)
 					var off := Vector2.from_angle(ctx.rng.randf() * TAU) * ctx.rng.randf_range(2.0, 10.0)
 					WorldTools.ignite(ctx, vp + off, 2.5, 0.8)
-					EventBus.fx_burst.emit(vp, 8, 6.0)
+					EventBus.fx_burst.emit(vp, EventBus.FX_ERUPT, 6.0)
 
 func _end_event(ctx: SimContext, water_sys: WaterSystem, growth: GrowthSystem) -> void:
 	EventBus.world_event_ended.emit(event_id)

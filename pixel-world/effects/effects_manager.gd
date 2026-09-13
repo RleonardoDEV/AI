@@ -8,7 +8,7 @@ extends Node2D
 ## Ambient emitters are what make the world feel alive when nothing is
 ## happening — drifting motes, fireflies after dark, birds crossing the sky.
 
-enum FX { IGNITE, BURN, SPLASH, BLOOM, DUST, FROST, GUST, METEOR, ERUPT, SPAWN, LIGHTNING }
+## Effect kind ids come from EventBus (see the note there on why).
 
 const BIRD_FLOCKS: int = 3
 const BIRDS_PER_FLOCK: int = 6
@@ -235,15 +235,24 @@ func _draw_birds(ci: CanvasItem) -> void:
 # Impact effects
 # --------------------------------------------------------------------------
 func _on_fx(at: Vector2, kind: int, strength: float) -> void:
+	if not Config.particles_enabled:
+		return
+	# Creature-scale feedback off screen is invisible work; at high simulation
+	# speeds there are thousands of these events a second.
+	if EventBus.FX_FREQUENT.has(kind):
+		if not _view.has_point(at):
+			return
+		if _budget_scale < 1.0 and randf() > _budget_scale:
+			return
 	var rng := _rng()
 	match kind:
-		FX.IGNITE:
+		EventBus.FX_IGNITE:
 			for k in 8:
 				glow_pool.emit(at + Vector2(rng.randfn(0.0, strength * 0.4), rng.randfn(0.0, strength * 0.4)),
 						Vector2(rng.randfn(0.0, 1.5), -rng.randf_range(1.0, 3.0)),
 						rng.randf_range(0.4, 1.1), rng.randf_range(2.0, 4.0),
 						Color(1.0, 0.55, 0.18, 0.9), ParticlePool.Kind.GLOW, 1.0, -0.8)
-		FX.BURN:
+		EventBus.FX_BURN:
 			for k in 10:
 				glow_pool.emit(at, Vector2(rng.randfn(0.0, 2.0), -rng.randf_range(1.5, 4.0)),
 						rng.randf_range(0.5, 1.4), rng.randf_range(1.4, 3.0),
@@ -252,39 +261,39 @@ func _on_fx(at: Vector2, kind: int, strength: float) -> void:
 				pool.emit(at, Vector2(rng.randfn(0.0, 1.0), -rng.randf_range(0.8, 2.0)),
 						rng.randf_range(1.5, 3.0), rng.randf_range(1.0, 2.0),
 						Color(0.20, 0.18, 0.20, 0.45), ParticlePool.Kind.PIXEL, 0.4, -0.2)
-		FX.SPLASH:
+		EventBus.FX_SPLASH:
 			glow_pool.emit(at, Vector2.ZERO, 0.7, strength * 2.2,
 					Color(0.55, 0.85, 1.0, 0.8), ParticlePool.Kind.RING, 0.0, 0.0)
 			for k in int(clampf(strength, 4.0, 22.0)):
 				pool.emit(at, Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(2.0, 9.0),
 						rng.randf_range(0.3, 0.8), rng.randf_range(0.4, 1.0),
 						Color(0.75, 0.90, 1.0, 0.85), ParticlePool.Kind.PIXEL, 2.4, 6.0)
-		FX.BLOOM:
+		EventBus.FX_BLOOM:
 			for k in int(clampf(strength * 1.6, 6.0, 26.0)):
 				var c := Color(0.55 + rng.randf() * 0.3, 1.0, 0.5, 0.8)
 				glow_pool.emit(at + Vector2.from_angle(rng.randf() * TAU) * rng.randf() * strength,
 						Vector2(rng.randfn(0.0, 0.6), -rng.randf_range(0.5, 2.0)),
 						rng.randf_range(0.6, 1.6), rng.randf_range(1.2, 2.6), c,
 						ParticlePool.Kind.GLOW, 1.0, -0.4)
-		FX.DUST:
+		EventBus.FX_DUST:
 			for k in int(clampf(strength * 1.4, 6.0, 24.0)):
 				pool.emit(at + Vector2.from_angle(rng.randf() * TAU) * rng.randf() * strength,
 						Vector2(rng.randfn(0.0, 2.0), rng.randfn(0.0, 2.0)),
 						rng.randf_range(0.5, 1.4), rng.randf_range(0.6, 1.5),
 						Color(0.62, 0.57, 0.48, 0.6), ParticlePool.Kind.PIXEL, 2.0, 1.5)
-		FX.FROST:
+		EventBus.FX_FROST:
 			for k in int(clampf(strength * 1.5, 6.0, 26.0)):
 				glow_pool.emit(at + Vector2.from_angle(rng.randf() * TAU) * rng.randf() * strength,
 						Vector2(rng.randfn(0.0, 0.8), rng.randfn(0.0, 0.8)),
 						rng.randf_range(0.8, 2.0), rng.randf_range(1.0, 2.4),
 						Color(0.72, 0.92, 1.0, 0.7), ParticlePool.Kind.GLOW, 1.4, 0.0)
-		FX.GUST:
+		EventBus.FX_GUST:
 			for k in 16:
 				var d := Vector2.from_angle(rng.randf() * TAU)
 				pool.emit(at + d * rng.randf() * strength, d * rng.randf_range(4.0, 14.0),
 						rng.randf_range(0.3, 0.9), rng.randf_range(1.0, 2.2),
 						Color(0.80, 0.78, 0.70, 0.4), ParticlePool.Kind.STREAK, 1.2, 0.0)
-		FX.METEOR:
+		EventBus.FX_METEOR:
 			glow_pool.emit(at, Vector2.ZERO, 1.1, strength * 3.4,
 					Color(1.0, 0.82, 0.45, 0.95), ParticlePool.Kind.RING, 0.0, 0.0)
 			glow_pool.emit(at, Vector2.ZERO, 0.9, strength * 5.0,
@@ -303,7 +312,7 @@ func _on_fx(at: Vector2, kind: int, strength: float) -> void:
 						Vector2(rng.randfn(0.0, 1.2), -rng.randf_range(1.5, 4.0)),
 						rng.randf_range(2.5, 5.5), rng.randf_range(2.0, 4.5),
 						Color(0.24, 0.22, 0.24, 0.5), ParticlePool.Kind.PIXEL, 0.3, -0.3)
-		FX.ERUPT:
+		EventBus.FX_ERUPT:
 			for k in 26:
 				glow_pool.emit(at, Vector2(rng.randfn(0.0, 3.0), -rng.randf_range(3.0, 11.0)),
 						rng.randf_range(0.8, 2.2), rng.randf_range(2.0, 4.6),
@@ -312,14 +321,47 @@ func _on_fx(at: Vector2, kind: int, strength: float) -> void:
 				pool.emit(at, Vector2(rng.randfn(0.0, 2.0), -rng.randf_range(2.0, 7.0)),
 						rng.randf_range(3.0, 6.5), rng.randf_range(2.0, 4.0),
 						Color(0.18, 0.16, 0.18, 0.5), ParticlePool.Kind.PIXEL, 0.25, -0.4)
-		FX.SPAWN:
+		EventBus.FX_SPAWN:
 			glow_pool.emit(at, Vector2.ZERO, 0.6, strength * 2.0,
 					Color(0.7, 1.0, 0.8, 0.8), ParticlePool.Kind.RING, 0.0, 0.0)
 			for k in 10:
 				glow_pool.emit(at, Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(1.0, 4.0),
 						rng.randf_range(0.4, 1.0), rng.randf_range(1.2, 2.4),
 						Color(0.75, 1.0, 0.85, 0.7), ParticlePool.Kind.GLOW, 1.6, 0.0)
-		FX.LIGHTNING:
+		EventBus.FX_HIT:
+			# A short spray away from the impact, in the victim's own colour.
+			for k in 5:
+				var d3 := Vector2.from_angle(rng.randf() * TAU)
+				pool.emit(at, d3 * rng.randf_range(2.0, 7.0) - Vector2(0.0, 1.0),
+						rng.randf_range(0.2, 0.5), rng.randf_range(0.35, 0.8),
+						Color(0.85, 0.24, 0.28, 0.9), ParticlePool.Kind.PIXEL, 2.2, 5.0)
+			glow_pool.emit(at, Vector2.ZERO, 0.22, strength * 2.6,
+					Color(1.0, 0.85, 0.7, 0.6), ParticlePool.Kind.GLOW, 0.0, 0.0)
+		EventBus.FX_EAT:
+			for k in 2:
+				pool.emit(at + Vector2(rng.randfn(0.0, 0.5), rng.randfn(0.0, 0.4)),
+						Vector2(rng.randfn(0.0, 0.8), -rng.randf_range(0.4, 1.4)),
+						rng.randf_range(0.3, 0.7), rng.randf_range(0.3, 0.6),
+						Color(0.45, 0.78, 0.35, 0.85), ParticlePool.Kind.PIXEL, 1.6, 3.0)
+		EventBus.FX_DRINK:
+			for k in 2:
+				pool.emit(at + Vector2(rng.randfn(0.0, 0.5), 0.2),
+						Vector2(rng.randfn(0.0, 0.9), -rng.randf_range(0.6, 1.8)),
+						rng.randf_range(0.25, 0.6), rng.randf_range(0.3, 0.6),
+						Color(0.62, 0.86, 1.0, 0.85), ParticlePool.Kind.PIXEL, 1.8, 4.0)
+		EventBus.FX_BIRTH:
+			glow_pool.emit(at, Vector2.ZERO, 0.5, 2.4,
+					Color(1.0, 0.95, 0.75, 0.7), ParticlePool.Kind.GLOW, 0.0, 0.0)
+			for k in 4:
+				glow_pool.emit(at, Vector2.from_angle(rng.randf() * TAU) * rng.randf_range(1.0, 3.0),
+						rng.randf_range(0.3, 0.7), rng.randf_range(0.8, 1.6),
+						Color(1.0, 0.96, 0.80, 0.6), ParticlePool.Kind.GLOW, 1.8, -0.2)
+		EventBus.FX_DEATH:
+			for k in 4:
+				pool.emit(at, Vector2(rng.randfn(0.0, 0.8), -rng.randf_range(0.3, 1.2)),
+						rng.randf_range(0.6, 1.4), rng.randf_range(0.5, 1.1),
+						Color(0.30, 0.28, 0.30, 0.45), ParticlePool.Kind.PIXEL, 0.9, -0.3)
+		EventBus.FX_LIGHTNING:
 			glow_pool.emit(at, Vector2.ZERO, 0.35, strength * 3.0,
 					Color(0.9, 0.95, 1.0, 0.95), ParticlePool.Kind.GLOW, 0.0, 0.0)
 			for k in 12:

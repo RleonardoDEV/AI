@@ -25,6 +25,8 @@ uniform float cloud_amount : hint_range(0.0, 1.0) = 0.35;
 uniform float cloud_scroll = 0.0;
 uniform float heat : hint_range(0.0, 2.0) = 0.0;
 uniform float water_level_tint : hint_range(0.0, 1.0) = 0.0;
+// Opening reveal: the world materialises out of noise with a bright edge.
+uniform float reveal : hint_range(0.0, 1.0) = 1.0;
 
 const float MAT_WATER = 0.25;
 const float MAT_DEEP  = 0.35;
@@ -119,5 +121,21 @@ void fragment() {
 	vec3 lit = col * ambient_tint;
 	// Emissive sources glow harder after dark.
 	lit += emis * (0.7 + (1.0 - day_factor) * 1.3);
+
+	// ------------------------------------------------------------- reveal
+	if (reveal < 1.0) {
+		float seed_n = texture(noise_tex, wuv * 0.019).r;
+		// Contrast-stretched so the sweep actually crosses the noise's range
+		// (simplex clusters around 0.5), and biased so coastlines surface
+		// first — the island draws itself outline inwards.
+		seed_n = clamp((seed_n - 0.5) * 1.9 + 0.5, 0.0, 1.0);
+		seed_n = clamp(seed_n * 0.86 - shore * 0.14, 0.0, 1.0);
+		float r = reveal * 1.18 - 0.09;
+		float hidden = smoothstep(r, r + 0.16, seed_n);
+		lit = mix(lit, vec3(0.0), hidden);
+		// Bright leading edge where the world is materialising.
+		float edge = exp(-abs(seed_n - r) * 34.0) * (1.0 - hidden * 0.4);
+		lit += vec3(0.34, 0.66, 0.86) * edge * 1.1;
+	}
 	COLOR = vec4(lit, 1.0);
 }

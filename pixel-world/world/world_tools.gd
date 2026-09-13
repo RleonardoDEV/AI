@@ -57,7 +57,7 @@ static func ignite(ctx: SimContext, center: Vector2, radius: float, strength: fl
 			if world.ignite(y * world.w + x, strength * t):
 				lit += 1
 	if lit > 0:
-		EventBus.fx_burst.emit(center, 0, radius)
+		EventBus.fx_burst.emit(center, EventBus.FX_IGNITE, radius)
 	return lit
 
 static func flood(ctx: SimContext, center: Vector2, radius: float) -> void:
@@ -72,7 +72,7 @@ static func flood(ctx: SimContext, center: Vector2, radius: float) -> void:
 		world.fire[i] = 0.0
 		world.set_terrain(i, Terrain.T.SHALLOW if t < 0.65 else Terrain.T.WATER)
 	)
-	EventBus.fx_burst.emit(center, 2, radius)
+	EventBus.fx_burst.emit(center, EventBus.FX_SPLASH, radius)
 
 static func plant(ctx: SimContext, center: Vector2, radius: float, flora: FloraSystem) -> void:
 	var world := ctx.world
@@ -100,7 +100,7 @@ static func plant(ctx: SimContext, center: Vector2, radius: float, flora: FloraS
 			var is_tree := rng.randf() < 0.55
 			flora.add(p, rng.randi_range(0, PixelArt.TREE_VARIANTS - 1) if is_tree else rng.randi_range(0, 7),
 					0, 0 if is_tree else 1, rng)
-	EventBus.fx_burst.emit(center, 3, radius)
+	EventBus.fx_burst.emit(center, EventBus.FX_BLOOM, radius)
 
 static func raise_rock(ctx: SimContext, center: Vector2, radius: float) -> void:
 	var world := ctx.world
@@ -114,7 +114,7 @@ static func raise_rock(ctx: SimContext, center: Vector2, radius: float) -> void:
 		world.shade[i] = clampi(int(float(world.shade[i]) + t * 70.0), 0, 255)
 		world.mark_dirty(i)
 	)
-	EventBus.fx_burst.emit(center, 4, radius)
+	EventBus.fx_burst.emit(center, EventBus.FX_DUST, radius)
 
 static func freeze(ctx: SimContext, center: Vector2, radius: float) -> void:
 	var world := ctx.world
@@ -128,7 +128,7 @@ static func freeze(ctx: SimContext, center: Vector2, radius: float) -> void:
 			world.snow[i] = minf(1.0, world.snow[i] + t * 1.1)
 		world.mark_dirty(i)
 	)
-	EventBus.fx_burst.emit(center, 5, radius)
+	EventBus.fx_burst.emit(center, EventBus.FX_FROST, radius)
 
 static func gust(ctx: SimContext, center: Vector2, dir: Vector2, radius: float, strength: float) -> void:
 	var mgr = ctx.entities
@@ -147,7 +147,7 @@ static func gust(ctx: SimContext, center: Vector2, dir: Vector2, radius: float, 
 		if world.fire[i] > 0.02:
 			world.fire[i] = minf(1.0, world.fire[i] + t * 0.15)
 	)
-	EventBus.fx_burst.emit(center, 6, radius)
+	EventBus.fx_burst.emit(center, EventBus.FX_GUST, radius)
 
 # --------------------------------------------------------------------------
 # Cataclysms
@@ -193,7 +193,7 @@ static func meteor(ctx: SimContext, center: Vector2, power: float = 1.0) -> void
 			c.fear = 1.0
 			c.mem_threat = center
 			c.mem_threat_age = 0.0
-	EventBus.fx_burst.emit(center, 7, radius)
+	EventBus.fx_burst.emit(center, EventBus.FX_METEOR, radius)
 	EventBus.screen_shake.emit(minf(26.0, 9.0 * power))
 	EventBus.screen_flash.emit(Color(1.0, 0.85, 0.6), 0.75)
 
@@ -215,7 +215,7 @@ static func erupt(ctx: SimContext, center: Vector2, power: float = 1.0) -> void:
 			world.ignite(i, 0.4 + t * 0.5)
 		world.mark_dirty(i)
 	)
-	EventBus.fx_burst.emit(center, 8, radius)
+	EventBus.fx_burst.emit(center, EventBus.FX_ERUPT, radius)
 	EventBus.screen_shake.emit(minf(20.0, 7.0 * power))
 
 # --------------------------------------------------------------------------
@@ -246,7 +246,7 @@ static func spawn_life(ctx: SimContext, center: Vector2, count: int = 1) -> int:
 		if c != null:
 			made += 1
 	if made > 0:
-		EventBus.fx_burst.emit(center, 9, 4.0)
+		EventBus.fx_burst.emit(center, EventBus.FX_SPAWN, 4.0)
 	return made
 
 # --------------------------------------------------------------------------

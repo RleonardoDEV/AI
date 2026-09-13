@@ -74,6 +74,7 @@ func kill(ctx: SimContext, c: Creature, cause: int) -> void:
 	# Predation already transferred the energy; anything else leaves carrion.
 	if cause != Creature.Cause.FIRE:
 		_add_corpse(c)
+	EventBus.fx_burst.emit(c.pos, EventBus.FX_DEATH, 1.0)
 	EventBus.creature_died.emit(c, cause)
 
 ## Compacts the alive list; called once per tick batch.
@@ -224,6 +225,7 @@ func try_reproduce(ctx: SimContext, a: Creature, b: Creature) -> Creature:
 	a.breed_cooldown = cd
 	b.breed_cooldown = cd * 0.8
 	ctx.stats.note_birth()
+	EventBus.fx_burst.emit(child.pos, EventBus.FX_BIRTH, 1.0)
 	return child
 
 ## Counts nearby animals of the same species (bounded grid query).
@@ -258,6 +260,7 @@ func try_bud(ctx: SimContext, c: Creature) -> Creature:
 	c.breed_cooldown = 14.0
 	c.repro_drive = 0.0
 	ctx.stats.note_birth()
+	EventBus.fx_burst.emit(child.pos, EventBus.FX_BIRTH, 1.0)
 	return child
 
 # --------------------------------------------------------------------------

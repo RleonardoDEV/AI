@@ -6,7 +6,7 @@ extends Node2D
 ## nothing depends on editor state. Also owns input routing: which gestures go
 ## to the camera and which paint with the active god tool.
 
-const REVEAL_TIME: float = 2.2
+const REVEAL_TIME: float = 2.9
 const TOOL_INTERVAL: float = 0.045
 
 # --- Systems --------------------------------------------------------------
@@ -234,14 +234,16 @@ func _process(delta: float) -> void:
 		_backdrop_mat.set_shader_parameter("cloud_scroll", _elapsed)
 		_backdrop_mat.set_shader_parameter("time_s", _elapsed)
 
-	# Living things are tinted by the same light as the ground, and the whole
-	# scene fades up during the opening reveal.
+	# Opening animation: the ground dissolves in out of noise (in the terrain
+	# shader), then the plants, then the animals — so the world visibly comes
+	# to life rather than simply fading up.
 	var reveal_curve: float = smoothstep(0.0, 1.0, _reveal)
-	var lit := Color(ambient.r, ambient.g, ambient.b, 1.0) * reveal_curve
-	lit.a = 1.0
-	flora_view.modulate = lit
-	entity_view.modulate = lit
-	terrain.modulate = Color(reveal_curve, reveal_curve, reveal_curve, 1.0)
+	terrain.set_reveal(_reveal)
+	var flora_in: float = smoothstep(0.45, 0.92, _reveal)
+	var life_in: float = smoothstep(0.66, 1.0, _reveal)
+	flora_view.modulate = Color(ambient.r, ambient.g, ambient.b, flora_in)
+	entity_view.modulate = Color(ambient.r, ambient.g, ambient.b, life_in)
+	terrain.modulate = Color.WHITE
 	backdrop.modulate = Color(reveal_curve, reveal_curve, reveal_curve, 1.0)
 
 	var zoom := cam.zoom.x

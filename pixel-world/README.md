@@ -187,6 +187,21 @@ the ecology rather than just the palette.
 A day/night cycle drives a single colour grade every layer reads, so ground,
 plants and animals are lit by the same light.
 
+### Opening
+
+The app has no menu. On launch the ground **dissolves in out of noise** with a
+glowing leading edge — coastlines first, then the interior — and once it has
+settled the plants fade up, and then the animals. About three seconds, and the
+world is running before it has finished arriving.
+
+### Reading the world
+
+Animals show what they are doing without you having to tap them: a gait bob
+while walking, green crumbs while grazing, droplets at a waterhole, a red
+spray when a predator lands a hit, a warm sparkle at a birth, a grey puff at a
+death. All of it is view-culled and budget-scaled, so at 100x the effects
+thin out instead of drowning the frame.
+
 ---
 
 ## Architecture

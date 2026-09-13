@@ -162,6 +162,8 @@ static func think_and_act(ctx: SimContext, c: Creature, dt: float) -> void:
 			c.mem_water = c.pos
 			desired = Vector2.ZERO
 			urgency = 0.0
+			if ctx.rng.randf() < 0.10:
+				EventBus.fx_burst.emit(c.pos, EventBus.FX_DRINK, 1.0)
 		Creature.State.SEEK_FOOD:
 			c.search_countdown -= 1
 			if c.search_countdown <= 0:
@@ -180,6 +182,8 @@ static func think_and_act(ctx: SimContext, c: Creature, dt: float) -> void:
 				c.hunger = maxf(0.0, c.hunger - eaten * 1.75)
 				c.energy = minf(1.0, c.energy + eaten * 1.15)
 				c.mem_food = c.pos
+				if ctx.rng.randf() < 0.10:
+					EventBus.fx_burst.emit(c.pos, EventBus.FX_EAT, 1.0)
 			urgency = 0.0
 		Creature.State.HUNT:
 			if Perception.prey_id >= 0:
@@ -391,6 +395,7 @@ static func _attack(ctx: SimContext, c: Creature, prey: Creature, dt: float) -> 
 	# Bigger prey resists.
 	dmg /= maxf(0.35, prey.body_size * 0.75 + 0.4)
 	prey.health -= dmg
+	EventBus.fx_burst.emit(prey.pos, EventBus.FX_HIT, clampf(dmg, 0.2, 1.2))
 	prey.fear = 1.0
 	prey.mem_threat = c.pos
 	prey.mem_threat_age = 0.0

@@ -91,9 +91,11 @@ func _draw() -> void:
 		drawn_count += 1
 		var span := texel_span * c.draw_scale()
 		var half := span * 0.5
+		# Gait bob, applied before snapping so it lands as a whole-texel hop.
+		var bob: float = sin(c.anim_t * PI) * span * 0.055
 		# Snap to whole world texels: the terrain is pixel-aligned, and
 		# unsnapped sprites shimmer against it when the camera moves.
-		var origin := Vector2(floor(c.pos.x - half), floor(c.pos.y - half))
+		var origin := Vector2(floor(c.pos.x - half), floor(c.pos.y - half + bob))
 		var frame: int = int(c.anim_t) & 1
 		# Hurt animals flash toward red.
 		var tint := c.color
@@ -109,7 +111,8 @@ func _draw() -> void:
 				continue
 			var span := texel_span * c.draw_scale()
 			var half := span * 0.5
-			var origin := Vector2(floor(c.pos.x - half), floor(c.pos.y - half))
+			var bob: float = sin(c.anim_t * PI) * span * 0.055
+			var origin := Vector2(floor(c.pos.x - half), floor(c.pos.y - half + bob))
 			var frame: int = int(c.anim_t) & 1
 			draw_texture_rect_region(detail, Rect2(origin, Vector2(span, span)),
 					bank.region(c.sprite_slot, c.facing, frame), Color(1, 1, 1, 0.5))
