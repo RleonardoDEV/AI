@@ -46,6 +46,46 @@ def tipo_mes(texto: str) -> str:
     return texto
 
 
+def mes_anterior(mes: str) -> str:
+    """'2026-01' -> '2025-12'."""
+    anio, m = map(int, mes.split("-"))
+    return f"{anio - 1}-12" if m == 1 else f"{anio}-{m - 1:02d}"
+
+
+def comparar(actual: int, anterior: int) -> str:
+    """Texto con la diferencia respecto al mes anterior."""
+    if anterior == 0:
+        return "nuevo" if actual else ""
+    diff = actual - anterior
+    signo = "+" if diff > 0 else ""
+    pct = round(diff * 100 / anterior)
+    return f"{signo}{formato(diff)} ({signo}{pct}%)"
+
+
+class ErrorImportacion(Exception):
+    pass
+
+
+def leer_csv(fichero: TextIO) -> list[tuple[date, int, str, str]]:
+    """Lee el formato de `exportar`. La columna id se ignora: se crean gastos nuevos."""
+    lector = csv.DictReader(fichero)
+    faltan = {"fecha", "importe", "categoria"} - set(lector.fieldnames or [])
+    if faltan:
+        raise ErrorImportacion(f"Faltan columnas: {', '.join(sorted(faltan))}")
+    gastos = []
+    for n, fila in enumerate(lector, start=2):  # la línea 1 es la cabecera
+        try:
+            fecha = tipo_fecha((fila["fecha"] or "").strip())
+            importe = a_centimos((fila["importe"] or "").strip())
+        except argparse.ArgumentTypeError as e:
+            raise ErrorImportacion(f"Línea {n}: {e}") from None
+        categoria = (fila["categoria"] or "").strip()
+        if not categoria:
+            raise ErrorImportacion(f"Línea {n}: falta la categoría")
+        gastos.append((fecha, importe, categoria, fila.get("descripcion") or ""))
+    return gastos
+
+
 def construir_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(prog="gastos", description="Gestor de gastos personales.")
     p.add_argument("--version", action="version", version=f"%(prog)s {__version__}")
@@ -64,6 +104,16 @@ def construir_parser() -> argparse.ArgumentParser:
 
     b = sub.add_parser("borrar", aliases=["rm"], help="Borrar un gasto por id")
     b.add_argument("id", type=int)
+
+    ed = sub.add_parser("editar", help="Modificar un gasto por id")
+    ed.add_argument("id", type=int)
+    ed.add_argument("--importe", type=a_centimos)
+    ed.add_argument("--categoria")
+    ed.add_argument("--descripcion")
+    ed.add_argument("--fecha", type=tipo_fecha)
+
+    im = sub.add_parser("importar", help="Importar gastos desde un CSV (formato de `exportar`)")
+    im.add_argument("fichero")
 
     r = sub.add_parser("resumen", help="Total por categoría y estado del presupuesto")
     r.add_argument("--mes", type=tipo_mes, help="Por defecto, el mes actual")
@@ -108,11 +158,34 @@ def _ejecutar(args: argparse.Namespace, almacen: Almacen, out: TextIO) -> int:
             return 1
         print(f"Gasto #{args.id} borrado", file=out)
 
+    elif cmd == "editar":
+        campos = (args.fecha, args.importe, args.categoria, args.descripcion)
+        if all(c is None for c in campos):
+            print("Indica al menos un campo: --importe, --categoria, --descripcion o --fecha", file=sys.stderr)
+            return 2
+        if not almacen.editar(args.id, *campos):
+            print(f"No existe el gasto #{args.id}", file=sys.stderr)
+            return 1
+        print(f"Gasto #{args.id} actualizado", file=out)
+
+    elif cmd == "importar":
+        try:
+            with open(args.fichero, encoding="utf-8-sig", newline="") as f:
+                gastos = leer_csv(f)
+        except OSError as e:
+            print(f"No se puede leer {args.fichero}: {e.strerror}", file=sys.stderr)
+            return 1
+        except ErrorImportacion as e:
+            print(f"No se ha importado nada. {e}", file=sys.stderr)
+            return 1
+        print(f"{almacen.anadir_varios(gastos)} gastos importados", file=out)
+
     elif cmd == "resumen":
         mes = args.mes or date.today().strftime("%Y-%m")
         totales = almacen.resumen(mes)
+        previos = almacen.resumen(mes_anterior(mes))
         limites = almacen.presupuestos()
-        print(f"Resumen de {mes}", file=out)
+        print(f"Resumen de {mes} (comparado con {mes_anterior(mes)})", file=out)
         if not totales and not limites:
             print("No hay gastos.", file=out)
             return 0
@@ -123,8 +196,14 @@ def _ejecutar(args: argparse.Namespace, almacen: Almacen, out: TextIO) -> int:
                 pct = gastado * 100 // limites[cat]
                 aviso = "  ¡SUPERADO!" if gastado > limites[cat] else ""
                 linea += f"  de {formato(limites[cat])} ({pct}%){aviso}"
+            if cambio := comparar(gastado, previos.get(cat, 0)):
+                linea += f"  | {cambio}"
             print(linea, file=out)
-        print(f"  {'TOTAL':<14} {formato(sum(totales.values())):>12}", file=out)
+        total, total_previo = sum(totales.values()), sum(previos.values())
+        linea = f"  {'TOTAL':<14} {formato(total):>12}"
+        if cambio := comparar(total, total_previo):
+            linea += f"  | {cambio}"
+        print(linea, file=out)
 
     elif cmd == "presupuesto":
         almacen.fijar_presupuesto(args.categoria, args.limite)

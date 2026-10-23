@@ -56,6 +56,45 @@ class Almacen:
         self.con.commit()
         return int(cur.lastrowid)
 
+    def editar(
+        self,
+        gasto_id: int,
+        fecha: date | None = None,
+        importe: int | None = None,
+        categoria: str | None = None,
+        descripcion: str | None = None,
+    ) -> bool:
+        """Cambia solo los campos indicados. Devuelve False si el gasto no existe."""
+        if importe is not None and importe <= 0:
+            raise ValueError("El importe debe ser mayor que cero")
+        cambios: dict[str, object] = {}
+        if fecha is not None:
+            cambios["fecha"] = fecha.isoformat()
+        if importe is not None:
+            cambios["importe"] = importe
+        if categoria is not None:
+            cambios["categoria"] = categoria.strip().lower()
+        if descripcion is not None:
+            cambios["descripcion"] = descripcion.strip()
+        if not cambios:
+            existe = self.con.execute("SELECT 1 FROM gastos WHERE id = ?", (gasto_id,)).fetchone()
+            return existe is not None
+        columnas = ", ".join(f"{c} = ?" for c in cambios)  # nombres fijos, no vienen del usuario
+        cur = self.con.execute(f"UPDATE gastos SET {columnas} WHERE id = ?", (*cambios.values(), gasto_id))
+        self.con.commit()
+        return cur.rowcount > 0
+
+    def anadir_varios(self, gastos: list[tuple[date, int, str, str]]) -> int:
+        """Inserta todos o ninguno. Devuelve cuántos se han insertado."""
+        if any(importe <= 0 for _, importe, _, _ in gastos):
+            raise ValueError("El importe debe ser mayor que cero")
+        with self.con:
+            self.con.executemany(
+                "INSERT INTO gastos (fecha, importe, categoria, descripcion) VALUES (?, ?, ?, ?)",
+                [(f.isoformat(), i, c.strip().lower(), d.strip()) for f, i, c, d in gastos],
+            )
+        return len(gastos)
+
     def borrar(self, gasto_id: int) -> bool:
         cur = self.con.execute("DELETE FROM gastos WHERE id = ?", (gasto_id,))
         self.con.commit()
