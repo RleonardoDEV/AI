@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f766e">
+<meta name="description" content="Cifra texto, archivos, enlaces y conversaciones. Claves post-cuánticas, OpenPGP y certificados X.509. Todo en tu dispositivo.">
+<title>CIFRA</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+<header class="top">
+  <div class="brand"><span class="logo" aria-hidden="true">🔐</span> CIFRA</div>
+  <div class="local">Todo se procesa en tu dispositivo. Nada se envía a internet.</div>
+</header>
+
+<nav class="tabs" role="tablist">
+  <button data-tab="texto" class="active">Texto</button>
+  <button data-tab="archivos">Archivos</button>
+  <button data-tab="enlace">Enlace seguro</button>
+  <button data-tab="contactos">Conversaciones</button>
+  <button data-tab="pgp">OpenPGP</button>
+  <button data-tab="certs">Certificados</button>
+  <button data-tab="hash">Huellas</button>
+  <button data-tab="herramientas">Herramientas</button>
+  <button data-tab="acerca">Cifrado CIFRA</button>
+</nav>
+
+<main>
+<!-- ============ TEXTO ============ -->
+<section id="texto" class="panel active">
+  <h2>Cifrar texto con contraseña</h2>
+  <p class="hint">Compártelo por cualquier medio (WhatsApp, correo…). La otra persona lo pega aquí y escribe la misma contraseña. Envía la contraseña por <strong>otro canal</strong> distinto.</p>
+  <label>Algoritmo <select id="t-alg"></select></label>
+  <p class="hint" id="t-alg-note"></p>
+  <label>Contraseña <input id="t-pw" type="password" autocomplete="new-password"></label>
+  <div class="meter"><span id="t-meter"></span></div>
+  <label>Texto <textarea id="t-in" rows="6" placeholder="Escribe el texto a cifrar o pega un mensaje cifrado (cifra1.…)"></textarea></label>
+  <div class="row"><button id="t-enc" class="primary">Cifrar</button><button id="t-dec">Descifrar</button></div>
+  <div class="out" id="t-out"></div>
+</section>
+
+<!-- ============ ARCHIVOS ============ -->
+<section id="archivos" class="panel">
+  <h2>Cifrar archivos</h2>
+  <p class="hint">Fotos, PDF, documentos… Se genera un archivo <code>.cifra</code>. El nombre original también queda oculto.</p>
+  <label>Archivo <input id="f-file" type="file"></label>
+  <label>Algoritmo <select id="f-alg"></select></label>
+  <label>Contraseña <input id="f-pw" type="password" autocomplete="new-password"></label>
+  <div class="row"><button id="f-enc" class="primary">Cifrar archivo</button><button id="f-dec">Descifrar archivo .cifra</button></div>
+  <div class="out" id="f-out"></div>
+</section>
+
+<!-- ============ ENLACE ============ -->
+<section id="enlace" class="panel">
+  <h2>Enlace seguro</h2>
+  <p class="hint">Convierte un texto o una dirección web en un enlace cifrado. La clave viaja después del símbolo <code>#</code>, una parte que los navegadores <strong>nunca envían al servidor</strong>.</p>
+  <label>Texto o enlace a proteger <textarea id="l-in" rows="3" placeholder="https://… o cualquier mensaje"></textarea></label>
+  <label>Protección
+    <select id="l-mode">
+      <option value="key">La clave va dentro del enlace (quien tenga el enlace lo abre)</option>
+      <option value="pw">Con contraseña (la envías por otro canal)</option>
+    </select></label>
+  <label id="l-pw-wrap" hidden>Contraseña <input id="l-pw" type="password" autocomplete="new-password"></label>
+  <label>Dirección de la app (para generar el enlace) <input id="l-base" type="url"></label>
+  <button id="l-make" class="primary">Crear enlace seguro</button>
+  <div class="out" id="l-out"></div>
+  <hr>
+  <h3>Abrir un enlace seguro</h3>
+  <label>Pega el enlace <input id="l-open-in" type="text"></label>
+  <label id="l-open-pw-wrap" hidden>Contraseña <input id="l-open-pw" type="password"></label>
+  <button id="l-open">Abrir</button>
+  <div class="out" id="l-open-out"></div>
+</section>
+
+<!-- ============ CONTACTOS ============ -->
+<section id="contactos" class="panel">
+  <h2>Conversaciones cifradas de extremo a extremo</h2>
+  <p class="hint">Crea tu identidad y comparte tu <strong>clave pública</strong>. Usa cifrado <strong>híbrido post-cuántico</strong> (X25519 + ML-KEM-768) y firma Ed25519, el mismo enfoque que Signal e iMessage.</p>
+  <div id="id-none">
+    <h3>Crear mi identidad</h3>
+    <label>Tu nombre <input id="id-name"></label>
+    <label>Contraseña para proteger tus claves en este dispositivo <input id="id-pw" type="password" autocomplete="new-password"></label>
+    <button id="id-create" class="primary">Crear identidad</button>
+  </div>
+  <div id="id-locked" hidden>
+    <h3>Desbloquear identidad</h3>
+    <label>Contraseña <input id="id-unlock-pw" type="password"></label>
+    <div class="row"><button id="id-unlock" class="primary">Desbloquear</button><button id="id-delete" class="danger">Borrar identidad</button></div>
+  </div>
+  <div id="id-ready" hidden>
+    <div class="card">
+      <div><strong id="id-label"></strong></div>
+      <div class="hint">Tu huella: <code id="id-fp"></code></div>
+      <div class="row"><button id="id-copy">Copiar mi clave pública</button><button id="id-qr">Ver como QR</button><button id="id-backup">Copia de seguridad</button><button id="id-lock">Bloquear</button></div>
+      <div id="id-qr-out"></div>
+    </div>
+    <h3>Contactos</h3>
+    <label>Clave pública de un contacto <textarea id="c-pub" rows="2" placeholder="cifrapub1.…"></textarea></label>
+    <button id="c-add">Añadir contacto</button>
+    <p class="hint">Comprueba la huella con tu contacto (en persona o por llamada) para estar seguro de que la clave es suya.</p>
+    <ul id="c-list" class="list"></ul>
+    <h3>Mensaje</h3>
+    <label>Para <select id="m-to"></select></label>
+    <label><input type="checkbox" id="m-anon"> Enviar de forma anónima (sin firmar)</label>
+    <label>Texto <textarea id="m-in" rows="5" placeholder="Escribe un mensaje o pega uno recibido (cifra1.pk.…)"></textarea></label>
+    <div class="row"><button id="m-enc" class="primary">Cifrar para el contacto</button><button id="m-dec">Descifrar mensaje recibido</button></div>
+    <div class="out" id="m-out"></div>
+    <h3>Firmar un texto (sin cifrarlo)</h3>
+    <label>Texto <textarea id="s-in" rows="3"></textarea></label>
+    <label>Firma (para verificar) <input id="s-sig" placeholder="cifrasig1.…"></label>
+    <div class="row"><button id="s-sign">Firmar</button><button id="s-verify">Verificar firma</button></div>
+    <div class="out" id="s-out"></div>
+  </div>
+  <details><summary>Restaurar identidad desde copia de seguridad</summary>
+    <label>Copia de seguridad <textarea id="id-restore-in" rows="3" placeholder="cifra1.xc.…"></textarea></label>
+    <label>Contraseña de la copia <input id="id-restore-pw" type="password"></label>
+    <button id="id-restore">Restaurar</button>
+  </details>
+</section>
+
+<!-- ============ OPENPGP ============ -->
+<section id="pgp" class="panel">
+  <h2>OpenPGP</h2>
+  <p class="hint">Compatible con GnuPG, Kleopatra, Thunderbird, OpenKeychain y Proton Mail.</p>
+  <details open><summary>Generar par de claves</summary>
+    <label>Nombre <input id="p-name"></label>
+    <label>Correo <input id="p-email" type="email"></label>
+    <label>Contraseña de la clave <input id="p-pass" type="password" autocomplete="new-password"></label>
+    <button id="p-gen" class="primary">Generar (Curve25519)</button>
+    <div class="out" id="p-gen-out"></div>
+  </details>
+  <details><summary>Cifrar / descifrar</summary>
+    <label>Texto o mensaje PGP <textarea id="p-text" rows="5"></textarea></label>
+    <label>Clave pública del destinatario (para cifrar) o del remitente (para verificar) <textarea id="p-pub" rows="3"></textarea></label>
+    <label>Tu clave privada (para descifrar o firmar) <textarea id="p-priv" rows="3"></textarea></label>
+    <label>Contraseña de tu clave privada <input id="p-priv-pass" type="password"></label>
+    <label>…o una contraseña simple (cifrado simétrico) <input id="p-sym" type="password"></label>
+    <div class="row"><button id="p-enc" class="primary">Cifrar</button><button id="p-dec">Descifrar</button><button id="p-sign">Firmar en claro</button><button id="p-verify">Verificar firma</button><button id="p-info">Ver datos de la clave</button></div>
+    <div class="out" id="p-out"></div>
+  </details>
+</section>
+
+<!-- ============ CERTIFICADOS ============ -->
+<section id="certs" class="panel">
+  <h2>Certificados digitales X.509</h2>
+  <p class="hint">Para servidores HTTPS, redes locales, VPN o pruebas. Un certificado autofirmado <strong>no</strong> es de confianza pública. Para una web pública, genera una solicitud (CSR) y envíala a una autoridad como Let's Encrypt.</p>
+  <label>Tipo
+    <select id="x-kind">
+      <option value="self">Certificado autofirmado</option>
+      <option value="ca">Autoridad certificadora (CA) + certificado firmado por ella</option>
+      <option value="csr">Solicitud de firma (CSR)</option>
+    </select></label>
+  <div class="grid">
+    <label>Nombre común (CN) <input id="x-cn" placeholder="miservidor.local"></label>
+    <label>Organización (O) <input id="x-o"></label>
+    <label>Departamento (OU) <input id="x-ou"></label>
+    <label>País (C) <input id="x-c" maxlength="2" placeholder="ES"></label>
+    <label>Correo <input id="x-email" type="email"></label>
+    <label>Nombres alternativos (SAN) <input id="x-san" placeholder="ejemplo.com, www.ejemplo.com, 192.168.1.5"></label>
+    <label>Algoritmo <select id="x-key"></select></label>
+    <label>Validez (días) <input id="x-days" type="number" value="365" min="1" max="3650"></label>
+  </div>
+  <button id="x-gen" class="primary">Generar</button>
+  <div class="out" id="x-out"></div>
+  <hr>
+  <h3>Inspeccionar un certificado</h3>
+  <textarea id="x-inspect-in" rows="4" placeholder="-----BEGIN CERTIFICATE-----"></textarea>
+  <button id="x-inspect">Inspeccionar</button>
+  <div class="out" id="x-inspect-out"></div>
+</section>
+
+<!-- ============ HASH ============ -->
+<section id="hash" class="panel">
+  <h2>Huellas digitales (hash) y HMAC</h2>
+  <p class="hint">Sirve para comprobar que un archivo o texto no ha cambiado, por ejemplo una descarga. Un hash no se puede "descifrar".</p>
+  <label>Algoritmo <select id="h-alg"></select></label>
+  <label>Texto <textarea id="h-in" rows="3"></textarea></label>
+  <label>…o un archivo <input id="h-file" type="file"></label>
+  <label>Clave HMAC (opcional, solo SHA-2) <input id="h-key"></label>
+  <label>Comparar con (opcional) <input id="h-cmp" placeholder="pega aquí el hash publicado"></label>
+  <button id="h-go" class="primary">Calcular</button>
+  <div class="out" id="h-out"></div>
+</section>
+
+<!-- ============ HERRAMIENTAS ============ -->
+<section id="herramientas" class="panel">
+  <h2>Herramientas</h2>
+  <details open><summary>Generador de contraseñas</summary>
+    <label>Longitud: <span id="g-len-v">20</span> <input id="g-len" type="range" min="8" max="64" value="20"></label>
+    <div class="row checks">
+      <label><input type="checkbox" id="g-lower" checked> minúsculas</label>
+      <label><input type="checkbox" id="g-upper" checked> MAYÚSCULAS</label>
+      <label><input type="checkbox" id="g-digits" checked> números</label>
+      <label><input type="checkbox" id="g-symbols" checked> símbolos</label>
+    </div>
+    <button id="g-go" class="primary">Generar</button>
+    <div class="out" id="g-out"></div>
+  </details>
+  <details><summary>Esconder un mensaje dentro de un texto normal</summary>
+    <p class="hint">Esto es <strong>esteganografía</strong>: el mensaje se mete en caracteres invisibles y el texto se ve normal. Cifra primero el mensaje para que, si alguien lo descubre, no pueda leerlo.</p>
+    <label>Texto visible <input id="z-cover" placeholder="¡Nos vemos mañana!"></label>
+    <label>Mensaje oculto <textarea id="z-secret" rows="2"></textarea></label>
+    <div class="row"><button id="z-hide" class="primary">Esconder</button><button id="z-reveal">Revelar (pega el texto en "Texto visible")</button></div>
+    <div class="out" id="z-out"></div>
+  </details>
+  <details><summary>Código QR</summary>
+    <label>Texto <textarea id="q-in" rows="2"></textarea></label>
+    <button id="q-go">Generar QR</button>
+    <div class="out" id="q-out"></div>
+  </details>
+  <details><summary>Codificar / decodificar (Base64, Hex…)</summary>
+    <p class="hint warn">Codificar <strong>no es cifrar</strong>: cualquiera puede revertirlo sin clave.</p>
+    <label>Formato <select id="e-fmt"></select></label>
+    <label>Texto <textarea id="e-in" rows="3"></textarea></label>
+    <div class="row"><button id="e-enc">Codificar</button><button id="e-dec">Decodificar</button></div>
+    <div class="out" id="e-out"></div>
+  </details>
+  <details><summary>Cifrados clásicos (educativo)</summary>
+    <p class="hint warn">César, Vigenère… son históricos y <strong>se rompen en segundos</strong>. Solo para aprender o jugar.</p>
+    <label>Método <select id="k-alg"></select></label>
+    <label>Clave (desplazamiento o palabra) <input id="k-key" value="3"></label>
+    <label>Texto <textarea id="k-in" rows="3"></textarea></label>
+    <div class="row"><button id="k-enc">Cifrar</button><button id="k-dec">Descifrar</button></div>
+    <div class="out" id="k-out"></div>
+  </details>
+</section>
+
+<!-- ============ ACERCA ============ -->
+<section id="acerca" class="panel prose">
+  <h2>El esquema CIFRA: ¿por qué no un algoritmo "inventado"?</h2>
+  <p>En criptografía hay una regla de oro: <strong>nunca inventes tu propio algoritmo de cifrado</strong>. AES y ChaCha20 llevan más de 20 años recibiendo ataques de miles de expertos y siguen en pie. Un algoritmo nuevo, por ingenioso que parezca, no tiene esa prueba y casi siempre esconde fallos que nadie ha encontrado todavía. Por eso los algoritmos que se usan hoy salieron de concursos públicos de varios años, como el de AES o el de criptografía post-cuántica del NIST.</p>
+  <p>Lo que sí se puede diseñar, y es lo que hace CIFRA, es una <strong>combinación nueva de piezas probadas</strong> que juntas son más robustas que cualquiera por separado:</p>
+  <ol>
+    <li><strong>Cascada de dos algoritmos de familias distintas.</strong> El modo "Cascada CIFRA" cifra con AES-256-GCM y después con XChaCha20-Poly1305, cada uno con su propia clave. AES se basa en sustitución y permutación; ChaCha, en sumas, rotaciones y XOR. Un avance matemático contra uno no afecta al otro. Para leer el mensaje habría que romper los dos.</li>
+    <li><strong>Híbrido post-cuántico.</strong> Las conversaciones combinan X25519 (curva elíptica clásica) con ML-KEM-768 (el estándar FIPS 203 del NIST, de 2024). Un ordenador cuántico podría romper X25519, pero no ML-KEM. Si algún día se descubriera un fallo en ML-KEM, que es más joven, X25519 sigue protegiendo. Así se evita el ataque de "guardar ahora y descifrar en el futuro".</li>
+    <li><strong>Argon2id para las contraseñas.</strong> Ganó la Password Hashing Competition. Cada intento exige 64 MB de memoria, lo que hace muy caros los ataques de fuerza bruta con tarjetas gráficas o chips especializados.</li>
+    <li><strong>Todo autenticado.</strong> Si alguien cambia un solo bit del mensaje, o de su cabecera, el descifrado falla en lugar de mostrar datos manipulados.</li>
+    <li><strong>Firmas ligadas al destinatario.</strong> La firma incluye la huella de quien recibe el mensaje, así que no se puede reenviar a otra persona haciéndose pasar por el remitente original.</li>
+    <li><strong>Nonces de 192 bits.</strong> XChaCha20 usa números aleatorios tan grandes que repetir uno por accidente es prácticamente imposible. Ese es el error más común con AES-GCM.</li>
+  </ol>
+  <h3>Formato de un mensaje</h3>
+  <pre>cifra1 . algoritmo . parámetros . sal . nonce . datos-cifrados</pre>
+  <p>El mensaje se describe a sí mismo: dice con qué se cifró y con qué parámetros. Así, una versión futura de la app puede reforzar la seguridad sin perder la compatibilidad con mensajes antiguos.</p>
+  <h3>Límites</h3>
+  <ul>
+    <li>Si tu dispositivo tiene un virus o alguien ve tu pantalla, ningún cifrado te protege.</li>
+    <li>La seguridad con contraseña depende de la contraseña. Usa el generador.</li>
+    <li>Este código no ha pasado una auditoría de seguridad independiente. Las piezas sí (libsodium, noble, OpenPGP.js), pero la combinación no.</li>
+  </ul>
+</section>
+</main>
+<div id="toast" role="status"></div>
+<script type="module" src="/src/main.js"></script>
+</body>
+</html>
