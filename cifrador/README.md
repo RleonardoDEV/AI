@@ -46,3 +46,14 @@ Para que los **enlaces seguros** funcionen con otras personas, la app tiene que 
 Un algoritmo inventado no ha pasado años de ataques públicos, y casi siempre es más débil que AES o ChaCha20. CIFRA mejora la seguridad de otra forma: **combina algoritmos probados para que haya que romper varios a la vez**. Usa dos familias de cifrado distintas en cascada y un acuerdo de clave clásico más otro post-cuántico.
 
 > ⚠ Este código no ha pasado una auditoría de seguridad independiente. Para información de vida o muerte, usa herramientas auditadas (Signal, VeraCrypt, GnuPG).
+
+## Publicar con contraseña de acceso (GitHub Pages)
+
+La app publicada va **cifrada con una contraseña**. Quien abra la dirección sin ella solo ve una pantalla de acceso, y el archivo descargado es ilegible. La contraseña se guarda como secreto de GitHub y nunca se escribe en el código.
+
+1. En GitHub: **Settings → Secrets and variables → Actions → New repository secret**. Nombre: `APP_PASSWORD`. Valor: tu contraseña (mínimo 12 caracteres; mejor 16 o más, generada con la propia app).
+2. **Actions → "Publicar CIFRA"** → abre la última ejecución → **Re-run all jobs**.
+3. **Settings → Pages → Source: Deploy from a branch → `gh-pages` / `(root)` → Save**.
+4. En 1-2 minutos estará en `https://<usuario>.github.io/<repositorio>/`.
+
+Para **cambiar la contraseña**: edita el secreto y vuelve a ejecutar el paso 2. Quien la marcó como "Recordar en este dispositivo" tendrá que escribir la nueva.
